@@ -47,7 +47,7 @@ public class Mail {
     
     public void request(String uid, String purpose, int dbID) {
         String body = String.format(REQUEST_STRING, uid, purpose, HOST, dbID, HOST, dbID);
-        sendMail("Database Request", body, uid);
+        sendMail("Database Request", body, "rtp");
     }
     
     public void approve(String uid, String dbName, String password) {
@@ -60,7 +60,7 @@ public class Mail {
         sendMail("Database denial", body, uid);
     }
 
-    public void init() {
+    public Mail() {
         props = System.getProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.port", 25);
