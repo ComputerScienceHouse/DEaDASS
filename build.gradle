@@ -1,0 +1,12 @@
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.mongodb:mongodb-driver:3.8.1'
+    compile 'javax.mail:javax.mail-api:1.6.2'
+}
