@@ -13,14 +13,14 @@ import javax.mail.internet.MimeMessage;
 
 public class Mail {
 
-    private static final String MAIL_HOST = null;
-    private static final String MAIL_USERNAME = null;
+    private static final String MAIL_HOST = "thoth.csh.rit.edu";
+    private static final String MAIL_USERNAME = "deadass";
     private static final String HOST = null;
-    
+
     private static final String REQUEST_STRING = "%s is requesting a database for %s.\n\n"
-            + "<a href=%s/approve/%d>Approve</a>\n"
-            + "<a href=%s/deny/%d>Deny</a>\n\n-Deadass";
-    
+            + "<a href=%s/approve/%s>Approve</a>\n"
+            + "<a href=%s/deny/%s>Deny</a>\n\n-Deadass";
+
     private static final String APPROVAL_STRING = "Your database %s has been created. The password is <pre>%s</pre>\n\n-Deadass";
     private static final String DENIAL_STRING = "Your database %s has been denied.\n\n-Deadass";
 
@@ -44,17 +44,18 @@ public class Mail {
             e.printStackTrace();
         }
     }
-    
-    public void request(String uid, String purpose, int dbID) {
-        String body = String.format(REQUEST_STRING, uid, purpose, HOST, dbID, HOST, dbID);
+
+    public void request(String uid, String purpose, String string) {
+        String body = String.format(REQUEST_STRING, uid, purpose, HOST, string, HOST, string);
         sendMail("Database Request", body, "rtp");
     }
-    
+
     public void approve(String uid, String dbName, String password) {
         String body = String.format(APPROVAL_STRING, dbName, password);
+        // TODO maybe emailing passwords is a bad idea.
         sendMail("Database created", body, uid);
     }
-    
+
     public void deny(String uid, String dbName) {
         String body = String.format(DENIAL_STRING, dbName);
         sendMail("Database denial", body, uid);
@@ -77,11 +78,10 @@ public class Mail {
 
         msgTemplate = new MimeMessage(session);
         try {
-            msgTemplate.setFrom(new InternetAddress("deadass@csh.rit.edu", "Deadass"));
+            msgTemplate.setFrom(new InternetAddress("deadass@csh.rit.edu", "DEaDASS"));
         } catch (UnsupportedEncodingException | MessagingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
     }
 }

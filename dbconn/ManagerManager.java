@@ -1,7 +1,13 @@
 package dbconn;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Filters.*;
 
 import dbconn.mongo.MongoManager;
 import dbconn.mysql.MysqlManager;
@@ -13,7 +19,10 @@ public class ManagerManager {
     private DatabaseManager mysql;
     private DatabaseManager postgres;
     
-    private MongoClient dbDB;
+    private MongoClient dbDBServer;
+    private MongoDatabase dbDB;
+    private MongoCollection<Document> dbColl;
+    
     private Mail mail;
     
     public ManagerManager() {
@@ -21,21 +30,30 @@ public class ManagerManager {
         mysql = new MysqlManager();
         postgres = new PostgresManager();
         
-        dbDB = MongoClients.create(defaults.Secrets.MANAGER_MONGO_CONNECT_STRING);
+        dbDBServer = MongoClients.create(defaults.Secrets.MANAGER_MONGO_CONNECT_STRING);
+        dbDB = dbDBServer.getDatabase("dbDB");
+        dbColl = dbDB.getCollection("dbs");
+        
         mail = new Mail();
     }
     
-    public void create(int dbID) {
-        // TODO retrieve dbID from dbDB
-        String type = null;
-        String dbName = null;
-        String username = null;
-        String uid = null;
+    public void create(String dbID) {
         
-        // TODO mark db as live in dbDB
+        Document db = dbColl.find(eq("_id", new ObjectId(dbID))).first();
+        if(!db.getString("status").equals("requested"))
+            throw new Error("No standing request for new DB, invalid creation request.");
+        db.replace("status", "created");
+
+        String type = db.getString("type");
+        String dbName = db.getString("name");
+        String username = db.getString("username");
+        String uid = db.getString("uid");
         
         // TODO haddock
         String password = "guh";
+        
+        db.append("pwd", password);
+        dbColl.updateOne(eq("_id", new ObjectId(dbID)), db);
         
         mail.approve(uid, dbName, password);
         
@@ -49,13 +67,15 @@ public class ManagerManager {
         }
     }
     
-    public void delete(int dbID) {
-        // TODO retrieve dbID from dbDB
-        String type = null;
-        String dbName = null;
+    public void delete(String dbID) {
         
-        // TODO delete db from dbDB
+        Document db = dbColl.find(eq("_id", new ObjectId(dbID))).first();
         
+        String type = db.getString("type");
+        String dbName = db.getString("name");
+        
+        dbColl.deleteOne(eq("_id", new ObjectId(dbID)));
+                
         switch(type) {
         case "mongo":
             mongo.delete(dbName);
@@ -66,18 +86,16 @@ public class ManagerManager {
        }
     }
     
-    public void request(String uid, String purpose, String type) {
-        // TODO store uid, type, and purpose in the dbDB
-        // Generate a dbID (have dbDB do this)
-        int dbID = 0;
-        
-        mail.request(uid, purpose, dbID);
+    public void request(String uid, String name, String purpose, String type) {
+        Document db = new Document("uid", uid).append("name", name).append("purpose", purpose).append("type", type).append("status", "requested");
+        dbColl.insertOne(db);
+        mail.request(uid, purpose, ((ObjectId)db.get("_id")).toHexString());
     }
     
     public void close() {
         mongo.close();
         mysql.close();
         postgres.close();
-        dbDB.close(); // TODO send shutdown command?
+        dbDBServer.close(); // TODO send shutdown command?
     }
 }
