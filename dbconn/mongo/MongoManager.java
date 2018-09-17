@@ -22,11 +22,10 @@ public class MongoManager implements dbconn.DatabaseManager {
      * Creates the specified database and adds the specified user as an owner.
      */
     @Override
-    public void create(String dbName, String username, String password) {
+    public void create(String dbName, String password) {
         // TODO add global accounts by CSH uid and control roles more cleanly.
-        System.out.println("name: " + dbName + " uid: " + username + " pwd: " + password);
         MongoDatabase db = server.getDatabase(dbName);
-        final BasicDBObject createUserCommand = new BasicDBObject("createUser", username).append("pwd", password)
+        final BasicDBObject createUserCommand = new BasicDBObject("createUser", dbName).append("pwd", password)
                 .append("roles", Collections.singletonList(new BasicDBObject("role", "dbOwner").append("db", dbName)));
         db.runCommand(createUserCommand);
     }
@@ -49,5 +48,4 @@ public class MongoManager implements dbconn.DatabaseManager {
     public void close() {
         server.close(); // TODO send shutdown command?
     }
-
 }

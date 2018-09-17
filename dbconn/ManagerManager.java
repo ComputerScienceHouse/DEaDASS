@@ -46,7 +46,6 @@ public class ManagerManager {
 
         String type = db.getString("type");
         String dbName = db.getString("name");
-        String username = db.getString("username");
         String uid = db.getString("uid");
 
         // TODO haddock
@@ -56,11 +55,11 @@ public class ManagerManager {
 
         switch (type) {
         case "mongo":
-            mongo.create(dbName, username, password);
+            mongo.create(dbName, password);
         case "mysql":
-            mysql.create(dbName, username, password);
+            mysql.create(dbName, password);
         case "postgres":
-            postgres.create(dbName, username, password);
+            postgres.create(dbName, password);
         }
 
         db.put("status", "created");
@@ -88,9 +87,9 @@ public class ManagerManager {
         dbColl.deleteOne(eq("_id", new ObjectId(dbID)));
     }
 
-    public void request(String uid, String name, String username, String purpose, String type) {
-        Document db = new Document("uid", uid).append("name", name).append("username", username)
-                .append("purpose", purpose).append("type", type).append("status", "requested");
+    public void request(String uid, String name, String purpose, String type) {
+        Document db = new Document("uid", uid).append("name", name).append("purpose", purpose).append("type", type)
+                .append("status", "requested");
         dbColl.insertOne(db);
         mail.request(uid, purpose, ((ObjectId) db.get("_id")).toHexString());
     }
