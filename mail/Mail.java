@@ -18,8 +18,7 @@ public class Mail {
     private static final String HOST = null;
 
     private static final String REQUEST_STRING = "%s is requesting a database for %s.\n\n"
-            + "<a href=%s/approve/%s>Approve</a>\n"
-            + "<a href=%s/deny/%s>Deny</a>\n\n-Deadass";
+            + "<a href=%s/approve/%s>Approve</a>\n" + "<a href=%s/deny/%s>Deny</a>\n\n-Deadass";
 
     private static final String APPROVAL_STRING = "Your database %s has been created. The password is <pre>%s</pre>\n\n-Deadass";
     private static final String DENIAL_STRING = "Your database %s has been denied.\n\n-Deadass";

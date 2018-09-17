@@ -24,6 +24,7 @@ public class MongoManager implements dbconn.DatabaseManager {
     @Override
     public void create(String dbName, String username, String password) {
         // TODO add global accounts by CSH uid and control roles more cleanly.
+        System.out.println("name: " + dbName + " uid: " + username + " pwd: " + password);
         MongoDatabase db = server.getDatabase(dbName);
         final BasicDBObject createUserCommand = new BasicDBObject("createUser", username).append("pwd", password)
                 .append("roles", Collections.singletonList(new BasicDBObject("role", "dbOwner").append("db", dbName)));
