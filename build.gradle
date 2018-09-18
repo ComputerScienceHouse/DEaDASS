@@ -10,4 +10,5 @@ dependencies {
     compile 'org.mongodb:mongodb-driver:3.8.1'
     compile 'javax.mail:javax.mail-api:1.6.2'
     compile 'com.sun.mail:javax.mail:1.6.2'
+    compile 'postgresql:postgresql:9.1-901-1.jdbc4'
 }
