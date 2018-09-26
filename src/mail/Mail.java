@@ -25,9 +25,9 @@ public class Mail {
 
     private MimeMessage msgTemplate;
 
-    Properties props;
-    Session session;
-    Transport transport;
+    private Properties props;
+    private Session session;
+    private Transport transport;
 
     private void sendMail(String subject, String body, String uid) {
         try {

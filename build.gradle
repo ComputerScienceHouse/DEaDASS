@@ -1,14 +1,21 @@
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 
 repositories {
     mavenCentral()
 }
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 dependencies {
     compile 'org.mongodb:mongodb-driver:3.8.1'
     compile 'javax.mail:javax.mail-api:1.6.2'
     compile 'com.sun.mail:javax.mail:1.6.2'
     compile 'postgresql:postgresql:9.1-901-1.jdbc4'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'com.jayway.jsonpath:json-path'
 }
