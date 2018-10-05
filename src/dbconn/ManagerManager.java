@@ -1,19 +1,16 @@
 package dbconn;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import org.bson.Document;
-import org.bson.types.ObjectId;
-
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
 import dbconn.mongo.MongoManager;
-import dbconn.mysql.MysqlManager;
 import dbconn.postgres.PostgresManager;
 import mail.Mail;
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class ManagerManager {
     private DatabaseManager mongo;
@@ -28,7 +25,6 @@ public class ManagerManager {
 
     public ManagerManager() {
         mongo = new MongoManager();
-        mysql = new MysqlManager();
         postgres = new PostgresManager();
 
         dbDBServer = MongoClients.create(defaults.Secrets.MANAGER_MONGO_CONNECT_STRING);
