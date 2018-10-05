@@ -27,3 +27,4 @@ yarn-error.log*
 DEaDASS.iml
 DEaDASS.ipr
 DEaDASS.iws
+src/defaults/Secrets.java
