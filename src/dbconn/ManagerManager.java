@@ -35,8 +35,9 @@ public class ManagerManager {
     }
 
     public void create(String dbID) {
-
-        Document db = dbColl.find(eq("_id", new ObjectId(dbID))).first();
+        ObjectId id =  new ObjectId(dbID);
+        
+        Document db = dbColl.find(eq("_id", id)).first();
         if (!db.getString("status").equals("requested"))
             throw new Error("No standing request for new DB, invalid creation request.");
 
@@ -44,12 +45,17 @@ public class ManagerManager {
         String dbName = db.getString("name");
         String uid = db.getString("uid");
 
+        mail.approve(uid, dbName, create(id, db));// TODO don't email passwords
+    }
+    
+    private String create(ObjectId id, Document db) {
         // TODO haddock
         String password = "guh";
 
         db.append("pwd", password);
-
-        switch (type) {
+        String dbName = db.getString("name");
+        
+        switch (db.getString("type")) {
         case "mongo":
             mongo.create(dbName, password);
         case "mysql":
@@ -59,9 +65,9 @@ public class ManagerManager {
         }
 
         db.put("status", "created");
-        dbColl.findOneAndReplace(eq("_id", new ObjectId(dbID)), db);
-
-        mail.approve(uid, dbName, password);
+        dbColl.findOneAndReplace(eq("_id", id), db);
+        
+        return password;
     }
 
     public void delete(String dbID) {
@@ -83,11 +89,20 @@ public class ManagerManager {
         dbColl.deleteOne(eq("_id", new ObjectId(dbID)));
     }
 
-    public void request(String uid, String name, String purpose, String type) {
+    public String request(String uid, String name, String purpose, String type) {
+        String status = "requested";
         Document db = new Document("uid", uid).append("name", name).append("purpose", purpose).append("type", type)
-                .append("status", "requested");
+                .append("status", status);
         dbColl.insertOne(db);
-        mail.request(uid, purpose, ((ObjectId) db.get("_id")).toHexString());
+        
+        ObjectId dbId = (ObjectId) db.get("_id");
+        //TODO test if approved.
+        if(status.equals("approved"))
+            return create(dbId, db);
+        
+        mail.request(uid, purpose, dbId.toHexString());
+        return null;
+        
     }
 
     public void close() {
