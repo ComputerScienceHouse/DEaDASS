@@ -15,8 +15,9 @@ public class Mail {
 
     private static final String MAIL_HOST = "thoth.csh.rit.edu";
     private static final String MAIL_USERNAME = "deadass";
-    private static final String HOST = null;
+    private static final String HOST = null; //TODO
 
+    // TODO need authentication on these routes.
     private static final String REQUEST_STRING = "%s is requesting a database for %s.\n\n"
             + "<a href=%s/approve/%s>Approve</a>\n" + "<a href=%s/deny/%s>Deny</a>\n\n-Deadass";
 
@@ -44,9 +45,10 @@ public class Mail {
         }
     }
 
-    public void request(String uid, String purpose, String string) {
-        String body = String.format(REQUEST_STRING, uid, purpose, HOST, string, HOST, string);
-        sendMail("Database Request", body, "rtp");
+    public void request(String uid, String purpose, String database_name) {
+        String subject = String.format("Database Request - %s:%s", uid, database_name);
+        String body = String.format(REQUEST_STRING, uid, purpose, HOST, database_name, HOST, database_name);
+        sendMail(subject, body, "rtp");
     }
 
     public void approve(String uid, String dbName, String password) {
