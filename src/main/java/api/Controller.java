@@ -1,12 +1,9 @@
 package api;
 
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import api.model.CreateResponse;
-import api.model.DBRequest;
+import api.model.CreateRequest;
 import dbconn.ManagerManager;
 
 
@@ -21,17 +18,16 @@ public class Controller {
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST, produces = "application/json")
-    public CreateResponse dbcreate(@RequestBody DBRequest db) {
+    @ResponseBody
+    public CreateResponse dbcreate(@RequestBody CreateRequest db) {
 
-        // TODO refactor request to handle allowing 5 databases without needing approval
-        String pass = man.request(db.getUid(), db.getName(), db.getPurpose(), db.getType());
+        // Request creation from the manager. If created, return the password, otherwise it's waiting for approval
+        String password = man.request(db.getUid(), db.getName(), db.getPurpose(), db.getType());
 
-        if (pass == null)
-            // DB requested
-            return new CreateResponse("requested", "");
+        if (password.equals(""))
+            return new CreateResponse("requested", ""); // DB requested
         else
-            // DB created.
-            return new CreateResponse("created", pass);
+            return new CreateResponse("created", password); // DB created.
     }
 
 }
