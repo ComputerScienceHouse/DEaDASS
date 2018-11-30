@@ -1,6 +1,6 @@
 package api.model;
 
-public class DBRequest {
+public class CreateRequest {
 
     private String uid;
     private String name;
