@@ -1,11 +1,8 @@
 package dbconn;
 
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import dbconn.mongo.MongoManager;
-import defaults.Secrets;
 import mail.Mail;
 import org.bson.Document;
 
@@ -15,8 +12,10 @@ import java.util.Properties;
 import static com.mongodb.client.model.Filters.eq;
 
 public class ManagerManager {
+    private PreparedStatement getDBAndPoolStmt;
     private PreparedStatement insertDBStmt;
     private PreparedStatement getCountDBsByPoolStmt;
+    private PreparedStatement insertUserStmt;
 
     private Connection managerConnection;
     private DatabaseManager mongo;
@@ -54,6 +53,16 @@ public class ManagerManager {
                     + "values (?, ?, ?, ?, ?)";
             insertDBStmt = managerConnection.prepareStatement(insertDB);
 
+            String getDbAndPoolByName = "select owner, is_group"
+                    + "from databases, pools"
+                    + "where name=? and pool=id";
+            getDBAndPoolStmt = managerConnection.prepareStatement(getDbAndPoolByName);
+
+            String insertUser = "insert into users "
+                    + "(database, owner, is_group, username, last_reset) "
+                    + "values (?, ?, ?, ?, ?)";
+            this.insertUserStmt = managerConnection.prepareStatement(insertUser);
+
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
             System.err.println("Manager DB errored while connecting");
@@ -67,47 +76,62 @@ public class ManagerManager {
      * Create from an rtp approval and send the email.
      * @param dbName the name of the database to be created.
      */
-    public void create(String dbName) {
-
-
-        Document db = dbColl.find(eq("name", dbName)).first();
-        if (!db.getString("status").equals("requested"))
-            throw new Error("No standing request for new DB, invalid creation request.");
-
-        String uid = db.getString("uid");
-
-        mail.approve(uid, dbName, create(db));// TODO don't email passwords
+    public void mailCreate(String dbName) {
+        // Get the db. Check not approved yet. Set approved. Send email, call normal create.
+        String uid = ""; // TODO get info from the db
+        create(dbName); // TODO handle the exception and probably dump the password
+        String password = "";
+        mail.approve(uid, dbName, password);// TODO don't email passwords
     }
 
-    private String create(Document db) {
-        // TODO haddock
-        String password = "guh";
+    // TODO throwing generic exception is bad....
+    private String create(String dbName) throws Exception {
+        // Get the db. Check approved. Set a password. Call the child create
+        try {
+            getDBAndPoolStmt.setString(1, dbName);
+            ResultSet db = getDBAndPoolStmt.executeQuery();
+            if(db.getBoolean("approved")) {
 
-        db.append("pwd", password);
-        String dbName = db.getString("name");
+                // Define a new user account
+                this.insertDBStmt.setString(1, dbName);
+                this.insertDBStmt.setString(4, dbName);
+                this.insertDBStmt.setString(2, db.getString("owner"));
+                this.insertDBStmt.setBoolean(3, db.getBoolean("is_group"));
+                this.insertDBStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
+                this.insertDBStmt.execute();
 
-        // Track number of dbs owned by this user
-        String uid = db.getString("uid");
-        Document user = userColl.find(eq("uid", uid)).first();
-        user.put("numDbs", 1 + user.getInteger("numDbs"));
-        userColl.updateOne(eq("uid", uid), user);
-
-
-        switch (db.getString("type")) {
-        case "mongo":
-            mongo.create(dbName, password);
-//        case "mysql":
-//            mysql.create(dbName, password);
-//        case "postgres":
-//            postgres.create(dbName, password);
+                // TODO Haddock
+                String password = "guh";
+                switch (db.getInt("type")) {
+                    case 0: // TODO enum.
+                        // Mongo
+                        this.mongo.create(dbName, password);
+                        break;
+                    case 1:
+                        // Postgres
+                        break;
+                    case 2:
+                        // MySQL
+                        break;
+                    default:
+                        throw new Exception("Well that's not a standard type of database.");
+                }
+                // TODO return password as some kinda response object so we can track response types and be fancy
+                // Oh, but wait until after you close the result set, or drop it in the finally...
+            } else {
+                throw new Exception("This database isn't marked as approved."
+                        + " Something didn't happen in the right order.");
+            }
+            db.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+            // TODO do something
         }
 
-        db.put("status", "created");
-        dbColl.findOneAndReplace(eq("name", dbName), db);
-
-        return password;
+        return ""; // TODO
     }
 
+    // TODO redo for postgres
     public void delete(String dbName) {
 
         Document db = dbColl.find(eq("name", dbName)).first();
@@ -173,6 +197,7 @@ public class ManagerManager {
         return ""; // TODO
     }
 
+    // TODO redo for postgres
     public void close() {
         mongo.close();
 //        mysql.close();
