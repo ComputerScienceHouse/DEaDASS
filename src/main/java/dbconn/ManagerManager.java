@@ -5,16 +5,23 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import dbconn.mongo.MongoManager;
-import dbconn.postgres.PostgresManager;
+import defaults.Secrets;
 import mail.Mail;
 import org.bson.Document;
+
+import java.sql.*;
+import java.util.Properties;
 
 import static com.mongodb.client.model.Filters.eq;
 
 public class ManagerManager {
+    private PreparedStatement insertDBStmt;
+    private PreparedStatement getCountDBsByPoolStmt;
+
+    private Connection managerConnection;
     private DatabaseManager mongo;
-    private DatabaseManager mysql;
-    private DatabaseManager postgres;
+//    private DatabaseManager mysql;
+//    private DatabaseManager postgres;
 
     private MongoClient dbDBServer;
     private MongoCollection<Document> dbColl;
@@ -24,12 +31,34 @@ public class ManagerManager {
 
     public ManagerManager() {
         mongo = new MongoManager();
-        postgres = new PostgresManager();
+//        postgres = new PostgresManager();
 
-        dbDBServer = MongoClients.create(defaults.Secrets.MANAGER_MONGO_CONNECT_STRING);
-        MongoDatabase dbDB = dbDBServer.getDatabase("dbDB");
-        dbColl = dbDB.getCollection("dbs");
-        userColl = dbDB.getCollection("users");
+
+        Properties props = new Properties();
+        props.setProperty("user", defaults.Secrets.MANAGER_USER);
+        props.setProperty("password", defaults.Secrets.MANAGER_PASSWORD);
+        props.setProperty("ssl", "true");
+
+        // Connect to the database and prepare statements.
+        try {
+            managerConnection = DriverManager.getConnection(defaults.Secrets.MANAGER_CONNECT_STRING, props);
+
+            String getPoolDbCount = "select count(*) as total, num_limit as limit, owner "
+                    + "from pools, databases "
+                    + "where id=pool and id=? and approved "
+                    + "group by id ";
+            getCountDBsByPoolStmt = managerConnection.prepareStatement(getPoolDbCount);
+
+            String insertDB = "insert into databases "
+                    + "(pool, name, purpose, type, approved) "
+                    + "values (?, ?, ?, ?, ?)";
+            insertDBStmt = managerConnection.prepareStatement(insertDB);
+
+        } catch (SQLException e) {
+            // TODO report this in some way? Maybe email someone....
+            System.err.println("Manager DB errored while connecting");
+            e.printStackTrace();
+        }
 
         mail = new Mail();
     }
@@ -39,6 +68,7 @@ public class ManagerManager {
      * @param dbName the name of the database to be created.
      */
     public void create(String dbName) {
+
 
         Document db = dbColl.find(eq("name", dbName)).first();
         if (!db.getString("status").equals("requested"))
@@ -66,10 +96,10 @@ public class ManagerManager {
         switch (db.getString("type")) {
         case "mongo":
             mongo.create(dbName, password);
-        case "mysql":
-            mysql.create(dbName, password);
-        case "postgres":
-            postgres.create(dbName, password);
+//        case "mysql":
+//            mysql.create(dbName, password);
+//        case "postgres":
+//            postgres.create(dbName, password);
         }
 
         db.put("status", "created");
@@ -93,49 +123,60 @@ public class ManagerManager {
         switch (type) {
         case "mongo":
             mongo.delete(dbName);
-        case "mysql":
-            mysql.delete(dbName);
-        case "postgres":
-            postgres.delete(dbName);
+//        case "mysql":
+//            mysql.delete(dbName);
+//        case "postgres":
+//            postgres.delete(dbName);
         }
 
         dbColl.deleteOne(eq("name", dbName));
     }
 
-    public String request(String uid, String name, String purpose, String type) {
-        // DB names are unique, so if exists, error.
-        if(dbColl.find(new Document("name", name)).first() != null)
-            throw new Error("Database name already taken.");
+    // TODO throwing generic Exception is bad.
+    public String request(int poolID, String name, String purpose, int type) throws Exception {
 
-        String status = "requested";
+        // Uniqueness will be handled by the database.
 
-        // Check the user's permissions. If the user is at or above db limit, request, else create
-        Document user = userColl.find(eq("uid", uid)).first();
-        if(user == null) {
-            user = new Document("uid", uid).append("numDbs", 0).append("dbLimit", defaults.Secrets.DEFAULT_LIMIT);
-            userColl.insertOne(user);
+        Boolean approved = false;
+        String owner = null;
+
+        // Get the pool from the database, check if at limit.
+        // If at or above limit, request. If not, approve. Limit == -1 if unlimited.
+        // Add the request info to the db.
+        try {
+            // Get a count of dbs and check if we should auto approve this request.
+            this.getCountDBsByPoolStmt.setInt(1,poolID);
+            ResultSet dbs = getCountDBsByPoolStmt.executeQuery();
+            int total_dbs = dbs.getInt("total");
+            int limit = dbs.getInt("limit");
+            approved = (limit < 0)? true : total_dbs < limit; // If -1, limit is infinity.
+            owner = dbs.getString("owner");
+            dbs.close();
+
+            // Insert the record into the db
+            this.insertDBStmt.setInt(1, poolID);
+            this.insertDBStmt.setString(2, name);
+            this.insertDBStmt.setString(3, purpose);
+            this.insertDBStmt.setInt(4, type);
+            this.insertDBStmt.setBoolean(5, approved);
+            insertDBStmt.execute();
+
+        } catch (SQLException se) {
+            se.printStackTrace();
+            // TODO specify what the error was.
+            throw new Exception("There was some exception in request sql. Not sure what. TODO: parse exceptions");
         }
 
-        if(user.getInteger("numDbs") < user.getInteger("dbLimit"))
-            status = "approved";
-
-
-        // Generate a new entry.
-        Document db = new Document("uid", uid).append("name", name).append("purpose", purpose).append("type", type)
-                .append("status", status);
-        dbColl.insertOne(db);
-
-        if(status.equals("approved"))
-            return create(db);
-
-        mail.request(uid, purpose, name);
-        return "";
+        if(approved)
+            return create(name);
+        mail.request(owner, purpose, name);
+        return ""; // TODO
     }
 
     public void close() {
         mongo.close();
-        mysql.close();
-        postgres.close();
+//        mysql.close();
+//        postgres.close();
         dbDBServer.close(); // TODO send shutdown command?
     }
 }
