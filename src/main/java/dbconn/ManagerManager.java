@@ -53,7 +53,7 @@ public class ManagerManager {
                     + "values (?, ?, ?, ?, ?)";
             insertDBStmt = managerConnection.prepareStatement(insertDB);
 
-            String getDbAndPoolByName = "select owner, is_group"
+            String getDbAndPoolByName = "select owner, is_group, approved"
                     + "from databases, pools"
                     + "where name=? and pool=id";
             getDBAndPoolStmt = managerConnection.prepareStatement(getDbAndPoolByName);
@@ -76,12 +76,21 @@ public class ManagerManager {
      * Create from an rtp approval and send the email.
      * @param dbName the name of the database to be created.
      */
-    public void mailCreate(String dbName) {
+    // TODO throwing generic exception is bad....
+    public void approve(String dbName) throws Exception {
         // Get the db. Check not approved yet. Set approved. Send email, call normal create.
-        String uid = ""; // TODO get info from the db
-        create(dbName); // TODO handle the exception and probably dump the password
-        String password = "";
-        mail.approve(uid, dbName, password);// TODO don't email passwords
+        try {
+            this.getDBAndPoolStmt.setString(1, dbName);
+            ResultSet db = this.getDBAndPoolStmt.executeQuery();
+            if (db.getBoolean("approved"))
+                throw new Exception("Database already approved.");
+            String owner = db.getString("owner");
+            create(dbName);
+            mail.approve(owner, dbName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // TODO parse errors?
+        }
     }
 
     // TODO throwing generic exception is bad....
