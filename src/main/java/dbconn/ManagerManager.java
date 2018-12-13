@@ -1,34 +1,26 @@
 package dbconn;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
-import org.bson.Document;
 
 import java.sql.*;
 import java.util.Properties;
 
-import static com.mongodb.client.model.Filters.eq;
 
 public class ManagerManager {
     private PreparedStatement getDBAndPoolStmt;
     private PreparedStatement insertDBStmt;
     private PreparedStatement getCountDBsByPoolStmt;
     private PreparedStatement insertUserStmt;
+    private PreparedStatement deleteDBStmt;
+    private PreparedStatement deleteDBUsersStmt;
 
     private Connection managerConnection;
     private DatabaseManager mongo;
 //    private DatabaseManager mysql;
 //    private DatabaseManager postgres;
 
-    private MongoClient dbDBServer;
-    private MongoCollection<Document> dbColl;
-    private MongoCollection<Document> userColl;
-
     private Mail mail;
-    private PreparedStatement deleteDBStmt;
-    private PreparedStatement deleteDBUsersStmt;
 
     public ManagerManager() {
         mongo = new MongoManager();
@@ -80,28 +72,40 @@ public class ManagerManager {
         mail = new Mail();
     }
 
+
     /**
-     * Create from an rtp approval and send the email.
-     * @param dbName the name of the database to be created.
+     * Approves a database, creates it, and notifies the owner.
+     * @param dbName the name of the database to be approved
+     * @throws Exception if the database is already approved TODO this should be a return message type
      */
-    // TODO throwing generic exception is bad....
     public void approve(String dbName) throws Exception {
         // Get the db. Check not approved yet. Set approved. Send email, call normal create.
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
+            String owner = db.getString("owner");
             if (db.getBoolean("approved"))
                 throw new Exception("Database already approved.");
-            String owner = db.getString("owner");
+
             create(dbName);
+
             mail.approve(owner, dbName);
+
+            db.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
             // TODO parse errors?
         }
     }
 
-    // TODO throwing generic exception is bad....
+
+    /**
+     * Creates a new database.
+     * @param dbName The name of the database to be created
+     * @return The password of the newly created user
+     * @throws Exception if the db type is unrecognised or the database isn't approved TODO this should be a return with a message
+     */
     private String create(String dbName) throws Exception {
         // Get the db. Check approved. Set a password. Call the child create
         try {
@@ -119,16 +123,14 @@ public class ManagerManager {
 
                 // TODO Haddock
                 String password = "guh";
+                // TODO enum.
                 switch (db.getInt("type")) {
-                    case 0: // TODO enum.
-                        // Mongo
+                    case 0: // Mongo
                         mongo.create(dbName, password);
                         break;
-                    case 1:
-                        // Postgres
+                    case 1: // Postgres
                         break;
-                    case 2:
-                        // MySQL
+                    case 2: // MySQL
                         break;
                     default:
                         throw new Exception("Well that's not a standard type of database.");
@@ -148,24 +150,26 @@ public class ManagerManager {
         return ""; // TODO
     }
 
-    // TODO throwing generic Exception is bad...
+
+    /**
+     * Deletes a database.
+     * @param dbName the name of the database to delete
+     * @throws Exception if the db type is unrecognised TODO this should be a return object
+     */
     public void delete(String dbName) throws Exception {
-
+        // Get the db. Delete it. Drop the record. Drop its users.
         try {
-
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
 
+            // TODO enum.
             switch (db.getInt("type")) {
-                case 0: // TODO enum.
-                    // Mongo
+                case 0: // Mongo
                     mongo.delete(dbName);
                     break;
-                case 1:
-                    // Postgres
+                case 1: // Postgres
                     break;
-                case 2:
-                    // MySQL
+                case 2: // MySQL
                     break;
                 default:
                     throw new Exception("Well that's not a standard type of database.");
@@ -181,23 +185,27 @@ public class ManagerManager {
             e.printStackTrace();
             // TODO parse exceptions?
         }
-
+        // TODO return a success message
     }
 
-    // TODO throwing generic Exception is bad.
-    public String request(int poolID, String name, String purpose, int type) throws Exception {
 
-        // Uniqueness will be handled by the database.
+    /**
+     * Creates a request for a database. If able to auto approve, also creates the db.
+     * @param poolID the id number of the pool this belongs to
+     * @param name the name of the new db
+     * @param purpose a description of what the db is for
+     * @param type the type of db. 0 for mongo, 1 for postgress, 2 for mysql. TODO replace with an enum
+     * @return TODO an object containing the status of the result of the action and a message
+     * @throws Exception TODO throws an exception if the sql was bad or if create errored. Replace with a return.
+     */
+    public String request(int poolID, String name, String purpose, int type) throws Exception {
 
         Boolean approved = false;
         String owner = null;
 
-        // Get the pool from the database, check if at limit.
-        // If at or above limit, request. If not, approve. Limit == -1 if unlimited.
-        // Add the request info to the db.
         try {
             // Get a count of dbs and check if we should auto approve this request.
-            this.getCountDBsByPoolStmt.setInt(1,poolID);
+            getCountDBsByPoolStmt.setInt(1,poolID);
             ResultSet dbs = getCountDBsByPoolStmt.executeQuery();
             int total_dbs = dbs.getInt("total");
             int limit = dbs.getInt("limit");
@@ -206,11 +214,11 @@ public class ManagerManager {
             dbs.close();
 
             // Insert the record into the db
-            this.insertDBStmt.setInt(1, poolID);
-            this.insertDBStmt.setString(2, name);
-            this.insertDBStmt.setString(3, purpose);
-            this.insertDBStmt.setInt(4, type);
-            this.insertDBStmt.setBoolean(5, approved);
+            insertDBStmt.setInt(1, poolID);
+            insertDBStmt.setString(2, name);
+            insertDBStmt.setString(3, purpose);
+            insertDBStmt.setInt(4, type);
+            insertDBStmt.setBoolean(5, approved);
             insertDBStmt.execute();
 
         } catch (SQLException se) {
@@ -225,11 +233,18 @@ public class ManagerManager {
         return ""; // TODO
     }
 
-    // TODO redo for postgres
+
+    /**
+     * Closes DEaDASS by calling close all of the database connections.
+     */
     public void close() {
-        mongo.close();
-//        mysql.close();
-//        postgres.close();
-        dbDBServer.close(); // TODO send shutdown command?
+        try {
+            mongo.close();
+//            mysql.close();
+//            postgres.close();
+            managerConnection.close();
+        } catch (Exception e) {
+            // Ignore, we are shutting down.
+        }
     }
 }
