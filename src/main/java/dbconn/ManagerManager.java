@@ -27,6 +27,8 @@ public class ManagerManager {
     private MongoCollection<Document> userColl;
 
     private Mail mail;
+    private PreparedStatement deleteDBStmt;
+    private PreparedStatement deleteDBUsersStmt;
 
     public ManagerManager() {
         mongo = new MongoManager();
@@ -53,7 +55,7 @@ public class ManagerManager {
                     + "values (?, ?, ?, ?, ?)";
             insertDBStmt = managerConnection.prepareStatement(insertDB);
 
-            String getDbAndPoolByName = "select owner, is_group, approved"
+            String getDbAndPoolByName = "select owner, is_group, approved, type"
                     + "from databases, pools"
                     + "where name=? and pool=id";
             getDBAndPoolStmt = managerConnection.prepareStatement(getDbAndPoolByName);
@@ -61,7 +63,13 @@ public class ManagerManager {
             String insertUser = "insert into users "
                     + "(database, owner, is_group, username, last_reset) "
                     + "values (?, ?, ?, ?, ?)";
-            this.insertUserStmt = managerConnection.prepareStatement(insertUser);
+            insertUserStmt = managerConnection.prepareStatement(insertUser);
+
+            String deleteDB = "delete from databases where name=?";
+            deleteDBStmt = managerConnection.prepareStatement(deleteDB);
+
+            String deleteDBUsers = "delete from users where database=?";
+            deleteDBUsersStmt = managerConnection.prepareStatement(deleteDBUsers);
 
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
@@ -80,8 +88,8 @@ public class ManagerManager {
     public void approve(String dbName) throws Exception {
         // Get the db. Check not approved yet. Set approved. Send email, call normal create.
         try {
-            this.getDBAndPoolStmt.setString(1, dbName);
-            ResultSet db = this.getDBAndPoolStmt.executeQuery();
+            getDBAndPoolStmt.setString(1, dbName);
+            ResultSet db = getDBAndPoolStmt.executeQuery();
             if (db.getBoolean("approved"))
                 throw new Exception("Database already approved.");
             String owner = db.getString("owner");
@@ -102,19 +110,19 @@ public class ManagerManager {
             if(db.getBoolean("approved")) {
 
                 // Define a new user account
-                this.insertDBStmt.setString(1, dbName);
-                this.insertDBStmt.setString(4, dbName);
-                this.insertDBStmt.setString(2, db.getString("owner"));
-                this.insertDBStmt.setBoolean(3, db.getBoolean("is_group"));
-                this.insertDBStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
-                this.insertDBStmt.execute();
+                insertDBStmt.setString(1, dbName);
+                insertDBStmt.setString(4, dbName);
+                insertDBStmt.setString(2, db.getString("owner"));
+                insertDBStmt.setBoolean(3, db.getBoolean("is_group"));
+                insertDBStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
+                insertDBStmt.execute();
 
                 // TODO Haddock
                 String password = "guh";
                 switch (db.getInt("type")) {
                     case 0: // TODO enum.
                         // Mongo
-                        this.mongo.create(dbName, password);
+                        mongo.create(dbName, password);
                         break;
                     case 1:
                         // Postgres
@@ -140,29 +148,40 @@ public class ManagerManager {
         return ""; // TODO
     }
 
-    // TODO redo for postgres
-    public void delete(String dbName) {
+    // TODO throwing generic Exception is bad...
+    public void delete(String dbName) throws Exception {
 
-        Document db = dbColl.find(eq("name", dbName)).first();
+        try {
 
-        // Track number of dbs owned by this user
-        String uid = db.getString("uid");
-        Document user = userColl.find(eq("uid", uid)).first();
-        user.put("numDbs", 1 - user.getInteger("numDbs"));
-        userColl.updateOne(eq("uid", uid), user);
+            getDBAndPoolStmt.setString(1, dbName);
+            ResultSet db = getDBAndPoolStmt.executeQuery();
 
-        String type = db.getString("type");
+            switch (db.getInt("type")) {
+                case 0: // TODO enum.
+                    // Mongo
+                    mongo.delete(dbName);
+                    break;
+                case 1:
+                    // Postgres
+                    break;
+                case 2:
+                    // MySQL
+                    break;
+                default:
+                    throw new Exception("Well that's not a standard type of database.");
+            }
 
-        switch (type) {
-        case "mongo":
-            mongo.delete(dbName);
-//        case "mysql":
-//            mysql.delete(dbName);
-//        case "postgres":
-//            postgres.delete(dbName);
+            deleteDBStmt.setString(1, dbName);
+            deleteDBStmt.execute();
+
+            deleteDBUsersStmt.setString(1, dbName);
+            deleteDBUsersStmt.execute();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // TODO parse exceptions?
         }
 
-        dbColl.deleteOne(eq("name", dbName));
     }
 
     // TODO throwing generic Exception is bad.
