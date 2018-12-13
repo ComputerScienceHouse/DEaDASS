@@ -42,10 +42,10 @@ public class Controller {
     }
 
 
-//    @RequestMapping(value = "/deny", method = RequestMethod.POST, produces = "application/json")
-//    @ResponseBody
-//    public Message dbDeny(@RequestBody Map<String, String> body) {
-//        return man.deny(body.get("database"));// TODO
-//    }
+    @RequestMapping(value = "/deny", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public Message dbDeny(@RequestBody Map<String, String> body) {
+        return man.deny(body.get("database"));
+    }
 
 }

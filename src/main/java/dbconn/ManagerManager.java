@@ -102,6 +102,33 @@ public class ManagerManager {
 
 
     /**
+     * Deletes a standing database request and notifies the requester.
+     * @param dbName the database to deny.
+     * @return a Message object containing the result of the action.
+     */
+    public Message deny(String dbName) {
+        // Just drop the request.
+        try {
+            getDBAndPoolStmt.setString(1, dbName);
+            ResultSet db = getDBAndPoolStmt.executeQuery();
+            if (!db.getBoolean("approved")) {
+                String owner = db.getString("owner");
+                mail.deny(owner, dbName);
+
+                // Drop it.
+                deleteDBStmt.setString(1, dbName);
+                deleteDBStmt.execute();
+                return new Message("DB request deleted.", Message.Type.SUCCESS);
+            } else
+                return new Message("DB not awaiting request.", Message.Type.ERROR);
+        } catch (SQLException se) {
+            se.printStackTrace();
+            return new Message("SQL error. Try again or check logs.", Message.Type.ERROR);
+        }
+    }
+
+
+    /**
      * Creates a new database.
      * @param dbName The name of the database to be created
      * @return a Message object containing the result of the operation
