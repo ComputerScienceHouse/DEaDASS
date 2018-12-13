@@ -1,5 +1,6 @@
 package dbconn;
 
+import api.model.Message;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
 
@@ -76,39 +77,39 @@ public class ManagerManager {
     /**
      * Approves a database, creates it, and notifies the owner.
      * @param dbName the name of the database to be approved
-     * @throws Exception if the database is already approved TODO this should be a return message type
+     * @return a Message object containing the result of the operation
      */
-    public void approve(String dbName) throws Exception {
+    public Message approve(String dbName) {
         // Get the db. Check not approved yet. Set approved. Send email, call normal create.
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
             String owner = db.getString("owner");
             if (db.getBoolean("approved"))
-                throw new Exception("Database already approved.");
+                return new Message("Database already approved.", Message.Type.ERROR);
 
             create(dbName);
-
             mail.approve(owner, dbName);
-
             db.close();
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // TODO parse errors?
+            // TODO specify the type of error? E.g. duplicate names.
+            return new Message("SQL error occurred. Try again or check logs.", Message.Type.ERROR);
         }
+        return new Message("Database approved.", Message.Type.SUCCESS);
     }
 
 
     /**
      * Creates a new database.
      * @param dbName The name of the database to be created
-     * @return The password of the newly created user
-     * @throws Exception if the db type is unrecognised or the database isn't approved TODO this should be a return with a message
+     * @return a Message object containing the result of the operation
      */
-    private String create(String dbName) throws Exception {
+    private Message create(String dbName) {
         // Get the db. Check approved. Set a password. Call the child create
         try {
+            String password = "";
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
             if(db.getBoolean("approved")) {
@@ -122,7 +123,7 @@ public class ManagerManager {
                 insertDBStmt.execute();
 
                 // TODO Haddock
-                String password = "guh";
+                password = "guh";
                 // TODO enum.
                 switch (db.getInt("type")) {
                     case 0: // Mongo
@@ -133,30 +134,29 @@ public class ManagerManager {
                     case 2: // MySQL
                         break;
                     default:
-                        throw new Exception("Well that's not a standard type of database.");
+                        return new Message("Unknown database type", Message.Type.ERROR);
                 }
-                // TODO return password as some kinda response object so we can track response types and be fancy
-                // Oh, but wait until after you close the result set, or drop it in the finally...
             } else {
-                throw new Exception("This database isn't marked as approved."
-                        + " Something didn't happen in the right order.");
+                return new Message("Specified database not marked as approved.", Message.Type.ERROR);
             }
             db.close();
+            if( password.equals("") )
+                return new Message("password:" + password, Message.Type.SUCCESS);
         } catch (SQLException se) {
             se.printStackTrace();
-            // TODO do something
+            // TODO specify the type of error? E.g. duplicate names.
+            return new Message("Create SQL error. Please try again or report to an RTP.", Message.Type.ERROR);
         }
-
-        return ""; // TODO
+        return new Message("Create failed to generate a password.", Message.Type.ERROR);
     }
 
 
     /**
      * Deletes a database.
      * @param dbName the name of the database to delete
-     * @throws Exception if the db type is unrecognised TODO this should be a return object
+     * @return a Message object containing the result of the operation
      */
-    public void delete(String dbName) throws Exception {
+    public Message delete(String dbName) {
         // Get the db. Delete it. Drop the record. Drop its users.
         try {
             getDBAndPoolStmt.setString(1, dbName);
@@ -172,7 +172,7 @@ public class ManagerManager {
                 case 2: // MySQL
                     break;
                 default:
-                    throw new Exception("Well that's not a standard type of database.");
+                    return new Message("Unknown database type", Message.Type.ERROR);
             }
 
             deleteDBStmt.setString(1, dbName);
@@ -183,9 +183,10 @@ public class ManagerManager {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // TODO parse exceptions?
+            // TODO specify the type of error? E.g. duplicate names.
+            return new Message("Delete SQL error. Please try again or report to an RTP.", Message.Type.ERROR);
         }
-        // TODO return a success message
+        return new Message("Database sucessfully deleted.", Message.Type.SUCCESS);
     }
 
 
@@ -195,10 +196,9 @@ public class ManagerManager {
      * @param name the name of the new db
      * @param purpose a description of what the db is for
      * @param type the type of db. 0 for mongo, 1 for postgress, 2 for mysql. TODO replace with an enum
-     * @return TODO an object containing the status of the result of the action and a message
-     * @throws Exception TODO throws an exception if the sql was bad or if create errored. Replace with a return.
+     * @return a Message object containing the result of the operation
      */
-    public String request(int poolID, String name, String purpose, int type) throws Exception {
+    public Message request(int poolID, String name, String purpose, int type) {
 
         Boolean approved = false;
         String owner = null;
@@ -223,14 +223,14 @@ public class ManagerManager {
 
         } catch (SQLException se) {
             se.printStackTrace();
-            // TODO specify what the error was.
-            throw new Exception("There was some exception in request sql. Not sure what. TODO: parse exceptions");
+            // TODO specify the type of error? E.g. duplicate names.
+            return new Message("Request SQL error. Please try again or report to an RTP.", Message.Type.ERROR);
         }
 
         if(approved)
             return create(name);
         mail.request(owner, purpose, name);
-        return ""; // TODO
+        return new Message("Database creation request sent.", Message.Type.MESSAGE);
     }
 
 

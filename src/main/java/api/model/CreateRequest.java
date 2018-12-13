@@ -2,13 +2,13 @@ package api.model;
 
 public class CreateRequest {
 
-    private String uid;
+    private int poolID;
     private String name;
     private String purpose;
-    private String type; // TODO enum?
+    private int type; // TODO enum?
 
-    public String getUid() {
-        return uid;
+    public int getPoolID() {
+        return poolID;
     }
 
     public String getName() {
@@ -19,7 +19,7 @@ public class CreateRequest {
         return purpose;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 
