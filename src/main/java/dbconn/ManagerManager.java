@@ -49,6 +49,8 @@ public class ManagerManager {
     private PreparedStatement deleteDBStmt;
     /** Deletes a db's users. Param 1: dbName */
     private PreparedStatement deleteDBUsersStmt;
+    /** Approves a database request. Param 1: dbName */
+    private PreparedStatement approveStmt;
 
     /** The connection object for the manager's sql db. */
     private Connection managerConnection;
@@ -108,6 +110,9 @@ public class ManagerManager {
             String deleteDBUsers = "delete from users where database=?";
             deleteDBUsersStmt = managerConnection.prepareStatement(deleteDBUsers);
 
+            String approveDB = "update databases set approved=true where name=?";
+            approveStmt = managerConnection.prepareStatement(approveDB);
+
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
             System.err.println("Manager DB errored while connecting");
@@ -135,6 +140,9 @@ public class ManagerManager {
             String owner = db.getString("owner");
             if (db.getBoolean("approved"))
                 return new Message("Database already approved.", Message.Type.ERROR);
+
+            approveStmt.setString(1, dbName);
+            approveStmt.execute();
 
             create(dbName);
             mail.approve(owner, dbName);

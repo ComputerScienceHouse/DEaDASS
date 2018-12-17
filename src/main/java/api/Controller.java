@@ -41,15 +41,15 @@ public class Controller {
     }
 
 
-    @RequestMapping(value = "/approve", method = RequestMethod.POST, produces = "application/json")
-    public String dbApprove(@RequestBody Map<String, String> body) { // TODO this may be the wrong body annotation
-        return man.approve(body.get("database")).asJSON();
+    @RequestMapping(value = "/approve/{database}", method = RequestMethod.GET, produces = "application/json")
+    public String dbApprove(@PathVariable String database) { // TODO this may be the wrong body annotation
+        return man.approve(database).asJSON();
     }
 
 
-    @RequestMapping(value = "/deny", method = RequestMethod.POST, produces = "application/json")
-    public String dbDeny(@RequestBody Map<String, String> body) {
-        return man.deny(body.get("database")).asJSON();
+    @RequestMapping(value = "/deny/{database}", method = RequestMethod.GET, produces = "application/json")
+    public String dbDeny(@PathVariable String database) {
+        return man.deny(database).asJSON();
     }
 
 }
