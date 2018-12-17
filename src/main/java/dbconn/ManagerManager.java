@@ -24,10 +24,15 @@ public class ManagerManager {
     private URL haddock;
 
     /**
-     * Get owner, is_group, approved, type
+     * Get owner, is_group, approved, type, id
      * Param: 1: db Name
      */
     private PreparedStatement getDBAndPoolStmt;
+    /**
+     * Get owner
+     * Param: 1: pool_id
+     */
+    private PreparedStatement getPoolStmt;
     /**
      * Create new db.
      * Param 1: pool_id, 2: dbname, 3: purpose, 4: type, 5: approved
@@ -49,14 +54,14 @@ public class ManagerManager {
     private Connection managerConnection;
 
     // Instance managers
-    private DatabaseManager mongo;
+//    private DatabaseManager mongo;
 //    private DatabaseManager mysql;
 //    private DatabaseManager postgres;
 
     private Mail mail;
 
     public ManagerManager() {
-        mongo = new MongoManager();
+//        mongo = new MongoManager();
 //        postgres = new PostgresManager();
 
         Properties props = new Properties();
@@ -77,14 +82,19 @@ public class ManagerManager {
                     + "group by id ";
             getCountDBsByPoolStmt = managerConnection.prepareStatement(getPoolDbCount);
 
+            String getPool = "select owner "
+                    + "from pools "
+                    + "where id=?";
+            getPoolStmt = managerConnection.prepareStatement(getPool);
+
             String insertDB = "insert into databases "
                     + "(pool, name, purpose, type, approved) "
                     + "values (?, ?, ?, ?, ?)";
             insertDBStmt = managerConnection.prepareStatement(insertDB);
 
-            String getDbAndPoolByName = "select owner, is_group, approved, type"
-                    + "from databases, pools"
-                    + "where name=? and pool=id";
+            String getDbAndPoolByName = "select owner, is_group, approved, type, id "
+                    + "from databases, pools "
+                    + "where databases.name=? and pool=id";
             getDBAndPoolStmt = managerConnection.prepareStatement(getDbAndPoolByName);
 
             String insertUser = "insert into users "
@@ -120,6 +130,8 @@ public class ManagerManager {
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
+            if(!db.next())
+                return new Message("No DB by that name to approve", Message.Type.ERROR);
             String owner = db.getString("owner");
             if (db.getBoolean("approved"))
                 return new Message("Database already approved.", Message.Type.ERROR);
@@ -147,6 +159,8 @@ public class ManagerManager {
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
+            if(!db.next())
+                return new Message("No DB by that name", Message.Type.ERROR);
             if (!db.getBoolean("approved")) {
                 String owner = db.getString("owner");
                 mail.deny(owner, dbName);
@@ -174,16 +188,18 @@ public class ManagerManager {
         try {
             String password = "";
             getDBAndPoolStmt.setString(1, dbName);
+            System.out.println(dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
+            db.next();
             if(db.getBoolean("approved")) {
 
                 // Define a new user account
-                insertDBStmt.setString(1, dbName);
-                insertDBStmt.setString(4, dbName);
-                insertDBStmt.setString(2, db.getString("owner"));
-                insertDBStmt.setBoolean(3, db.getBoolean("is_group"));
-                insertDBStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
-                insertDBStmt.execute();
+                insertUserStmt.setString(1, dbName);
+                insertUserStmt.setString(4, dbName);
+                insertUserStmt.setInt(2, db.getInt("id"));
+                insertUserStmt.setBoolean(3, db.getBoolean("is_group"));
+                insertUserStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
+                insertUserStmt.execute();
 
                 // Connect to haddock and generate a password or return an error trying.
                 try {
@@ -202,7 +218,7 @@ public class ManagerManager {
                 // TODO enum.
                 switch (db.getInt("type")) {
                     case 0: // Mongo
-                        mongo.create(dbName, password);
+//                        mongo.create(dbName, password);
                         break;
                     case 1: // Postgres
                         break;
@@ -215,7 +231,7 @@ public class ManagerManager {
                 return new Message("Specified database not marked as approved.", Message.Type.ERROR);
             }
             db.close();
-            if( password.equals("") )
+            if(!password.equals("") )
                 return new Message("password:" + password, Message.Type.SUCCESS);
         } catch (SQLException se) {
             se.printStackTrace();
@@ -232,15 +248,19 @@ public class ManagerManager {
      * @return a Message object containing the result of the operation
      */
     public Message delete(String dbName) {
+        System.out.println(dbName);
         // Get the db. Delete it. Drop the record. Drop its users.
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
 
+            if(!db.next())
+                return new Message("No DB to delete", Message.Type.ERROR);
+
             // TODO enum.
             switch (db.getInt("type")) {
                 case 0: // Mongo
-                    mongo.delete(dbName);
+//                    mongo.delete(dbName);
                     break;
                 case 1: // Postgres
                     break;
@@ -250,11 +270,11 @@ public class ManagerManager {
                     return new Message("Unknown database type", Message.Type.ERROR);
             }
 
-            deleteDBStmt.setString(1, dbName);
-            deleteDBStmt.execute();
-
             deleteDBUsersStmt.setString(1, dbName);
             deleteDBUsersStmt.execute();
+
+            deleteDBStmt.setString(1, dbName);
+            deleteDBStmt.execute();
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -282,10 +302,20 @@ public class ManagerManager {
             // Get a count of dbs and check if we should auto approve this request.
             getCountDBsByPoolStmt.setInt(1,poolID);
             ResultSet dbs = getCountDBsByPoolStmt.executeQuery();
-            int total_dbs = dbs.getInt("total");
-            int limit = dbs.getInt("limit");
-            approved = (limit < 0)? true : total_dbs < limit; // If -1, limit is infinity.
-            owner = dbs.getString("owner");
+            if(dbs.next()) {
+                int total_dbs = dbs.getInt("total");
+                int limit = dbs.getInt("limit");
+                approved = (limit < 0) ? true : total_dbs < limit; // If -1, limit is infinity.
+                owner = dbs.getString("owner");
+            } else {
+                getPoolStmt.setInt(1, poolID);
+                ResultSet pool = getPoolStmt.executeQuery();
+                if(pool.next())
+                    approved = true;
+                else
+                    return new Message("Invalid pool", Message.Type.ERROR);
+                pool.close();
+            }
             dbs.close();
 
             // Insert the record into the db
@@ -314,7 +344,7 @@ public class ManagerManager {
      */
     public void close() {
         try {
-            mongo.close();
+//            mongo.close();
 //            mysql.close();
 //            postgres.close();
             managerConnection.close();
