@@ -1,15 +1,18 @@
 package api;
 
-import api.model.Message;
-import org.springframework.web.bind.annotation.*;
-
-import api.model.CreateResponse;
 import api.model.CreateRequest;
+import api.model.Message;
 import dbconn.ManagerManager;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 
+/**
+ * The spring route controller for the api.
+ *
+ * @author Max Meinhold <mxmeinhold@gmail.com>
+ */
 @RestController
 public class Controller {
 
@@ -37,7 +40,7 @@ public class Controller {
 
     @RequestMapping(value = "/approve", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Message dbApprove(@RequestBody Map<String, String> body) {
+    public Message dbApprove(@RequestBody Map<String, String> body) { // TODO this may be the wrong body annotation
         return man.approve(body.get("database"));
     }
 

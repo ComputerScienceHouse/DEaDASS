@@ -13,16 +13,42 @@ import java.net.URLConnection;
 import java.sql.*;
 import java.util.Properties;
 
-
+/**
+ * The manager driver.
+ * Handles all common functionality for managing databases and delegates instance specific commands.
+ *
+ * @author Max Meinhold <mxmeinhold@gmail.com>
+ */
 public class ManagerManager {
+
+    private URL haddock;
+
+    /**
+     * Get owner, is_group, approved, type
+     * Param: 1: db Name
+     */
     private PreparedStatement getDBAndPoolStmt;
+    /**
+     * Create new db.
+     * Param 1: pool_id, 2: dbname, 3: purpose, 4: type, 5: approved
+     */
     private PreparedStatement insertDBStmt;
+    /** Get total, limit, owner. Param 1: pool id */
     private PreparedStatement getCountDBsByPoolStmt;
+    /**
+     * Create new user.
+     * Param 1: database, 2: pool_id, 3: is_group, 4: username, 5:last_reset
+     */
     private PreparedStatement insertUserStmt;
+    /** Deletes a db. Param 1: dbName */
     private PreparedStatement deleteDBStmt;
+    /** Deletes a db's users. Param 1: dbName */
     private PreparedStatement deleteDBUsersStmt;
 
+    /** The connection object for the manager's sql db. */
     private Connection managerConnection;
+
+    // Instance managers
     private DatabaseManager mongo;
 //    private DatabaseManager mysql;
 //    private DatabaseManager postgres;
@@ -33,7 +59,6 @@ public class ManagerManager {
         mongo = new MongoManager();
 //        postgres = new PostgresManager();
 
-
         Properties props = new Properties();
         props.setProperty("user", defaults.Secrets.MANAGER_USER);
         props.setProperty("password", defaults.Secrets.MANAGER_PASSWORD);
@@ -41,6 +66,9 @@ public class ManagerManager {
 
         // Connect to the database and prepare statements.
         try {
+
+            haddock = new URL("https://haddock.csh.rit.edu/length/32");
+
             managerConnection = DriverManager.getConnection(defaults.Secrets.MANAGER_CONNECT_STRING, props);
 
             String getPoolDbCount = "select count(*) as total, num_limit as limit, owner "
@@ -73,6 +101,8 @@ public class ManagerManager {
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
             System.err.println("Manager DB errored while connecting");
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
@@ -157,7 +187,6 @@ public class ManagerManager {
 
                 // Connect to haddock and generate a password or return an error trying.
                 try {
-                    URL haddock = new URL("https://haddock.csh.rit.edu/length/32");
                     URLConnection conn = haddock.openConnection();
                     conn.connect();
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
