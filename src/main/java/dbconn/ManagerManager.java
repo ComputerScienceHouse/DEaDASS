@@ -4,6 +4,12 @@ import api.model.Message;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.*;
 import java.util.Properties;
 
@@ -149,8 +155,21 @@ public class ManagerManager {
                 insertDBStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
                 insertDBStmt.execute();
 
-                // TODO Haddock
-                password = "guh";
+                // Connect to haddock and generate a password or return an error trying.
+                try {
+                    URL haddock = new URL("https://haddock.csh.rit.edu/length/32");
+                    URLConnection conn = haddock.openConnection();
+                    conn.connect();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    password = br.readLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return new Message("Failed to generate password.", Message.Type.ERROR);
+                }
+
+                if(password.equals(""))
+                    return new Message("Failed to generate password.", Message.Type.ERROR);
+
                 // TODO enum.
                 switch (db.getInt("type")) {
                     case 0: // Mongo
