@@ -1,15 +1,22 @@
 package dbconn.mongo;
 
-import java.util.Collections;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
+import java.util.Collections;
+
+/**
+ * An implementation of the DatabaseManager type for interfacing with MongoDB.
+ *
+ * @author Max Meinhold <mxmeinhold@gmail.com>
+ */
 public class MongoManager implements dbconn.DatabaseManager {
 
+    /** The connection object to the MongoDB server*/
     private MongoClient server;
+
 
     /**
      * Initiates connection to the server.
@@ -17,6 +24,7 @@ public class MongoManager implements dbconn.DatabaseManager {
     public MongoManager() {
         server = MongoClients.create(defaults.Secrets.MONGO_CONNECT_STRING);
     }
+
 
     /**
      * Creates the specified database and adds the specified user as an owner.
@@ -30,6 +38,7 @@ public class MongoManager implements dbconn.DatabaseManager {
         db.runCommand(createUserCommand);
     }
 
+
     /**
      * Deletes all users and data in the specified database, in effect deleting the
      * database.
@@ -40,6 +49,7 @@ public class MongoManager implements dbconn.DatabaseManager {
         db.runCommand(new BasicDBObject("dropAllUsersFromDatabase", 1));
         db.drop();
     }
+
 
     /**
      * Closes connections to the database server.

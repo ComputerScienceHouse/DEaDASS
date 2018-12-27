@@ -15,13 +15,15 @@ public class Mail {
 
     private static final String MAIL_HOST = "thoth.csh.rit.edu";
     private static final String MAIL_USERNAME = "deadass";
-    private static final String HOST = null;
+    private static final String HOST = null; //TODO
 
-    private static final String REQUEST_STRING = "%s is requesting a database for %s.\n\n"
-            + "<a href=%s/approve/%s>Approve</a>\n" + "<a href=%s/deny/%s>Deny</a>\n\n-Deadass";
+    // TODO need authentication on these routes.
+    private static final String REQUEST_STRING = "%s is requesting a database named %s for <code>%s</code>.\n\n"
+            + "<a href=%s/approvals>Visit the approvals page.</a>\n\n- DEaDASS";
 
-    private static final String APPROVAL_STRING = "Your database %s has been created. The password is <pre>%s</pre>\n\n-Deadass";
-    private static final String DENIAL_STRING = "Your database %s has been denied.\n\n-Deadass";
+    private static final String APPROVAL_STRING = "Your database %s has been created."
+            + " Please login to DEaDASS to reset the password and obtain your access credentials.\n\n- DEaDASS";
+    private static final String DENIAL_STRING = "Your database %s has been denied.\n\n- DEaDASS";
 
     private MimeMessage msgTemplate;
 
@@ -44,20 +46,20 @@ public class Mail {
         }
     }
 
-    public void request(String uid, String purpose, String string) {
-        String body = String.format(REQUEST_STRING, uid, purpose, HOST, string, HOST, string);
-        sendMail("Database Request", body, "rtp");
+    public void request(String uid, String purpose, String database_name) {
+        String subject = String.format("Database Request - %s:%s", uid, database_name);
+        String body = String.format(REQUEST_STRING, uid, database_name, purpose, HOST);
+        sendMail(subject, body, "rtp");
     }
 
-    public void approve(String uid, String dbName, String password) {
-        String body = String.format(APPROVAL_STRING, dbName, password);
-        // TODO maybe emailing passwords is a bad idea.
-        sendMail("Database created", body, uid);
+    public void approve(String uid, String dbName) {
+        String body = String.format(APPROVAL_STRING, dbName);
+        sendMail("Database Creation", body, uid);
     }
 
     public void deny(String uid, String dbName) {
         String body = String.format(DENIAL_STRING, dbName);
-        sendMail("Database denial", body, uid);
+        sendMail("Database Denial", body, uid);
     }
 
     public Mail() {
