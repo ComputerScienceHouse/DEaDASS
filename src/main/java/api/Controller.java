@@ -1,6 +1,5 @@
 package api;
 
-import api.model.CreateRequest;
 import api.model.Message;
 import dbconn.ManagerManager;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +29,9 @@ public class Controller {
 
 
     @RequestMapping(value = "/create", method = RequestMethod.POST, produces = "application/json")
-    public String dbCreate(@RequestBody CreateRequest db) {
-        return man.request(db.getPoolID(), db.getName(), db.getPurpose(), db.getType()).asJSON();
+    public String dbCreate(@RequestBody Map<String, String> body) {
+        return man.request(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
+                body.get("purpose"), Integer.parseInt(body.get("type"))).asJSON();
     }
 
 
