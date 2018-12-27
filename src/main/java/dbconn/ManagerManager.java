@@ -56,14 +56,14 @@ public class ManagerManager {
     private Connection managerConnection;
 
     // Instance managers
-//    private DatabaseManager mongo;
+    private DatabaseManager mongo;
 //    private DatabaseManager mysql;
 //    private DatabaseManager postgres;
 
     private Mail mail;
 
     public ManagerManager() {
-//        mongo = new MongoManager();
+        mongo = new MongoManager();
 //        postgres = new PostgresManager();
 
         Properties props = new Properties();
@@ -226,7 +226,7 @@ public class ManagerManager {
                 // TODO enum.
                 switch (db.getInt("type")) {
                     case 0: // Mongo
-//                        mongo.create(dbName, password);
+                        mongo.create(dbName, password);
                         break;
                     case 1: // Postgres
                         break;
@@ -268,7 +268,7 @@ public class ManagerManager {
             // TODO enum.
             switch (db.getInt("type")) {
                 case 0: // Mongo
-//                    mongo.delete(dbName);
+                    mongo.delete(dbName);
                     break;
                 case 1: // Postgres
                     break;
@@ -352,7 +352,7 @@ public class ManagerManager {
      */
     public void close() {
         try {
-//            mongo.close();
+            mongo.close();
 //            mysql.close();
 //            postgres.close();
             managerConnection.close();
