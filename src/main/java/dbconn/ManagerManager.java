@@ -386,4 +386,88 @@ public class ManagerManager {
             // Ignore, we are shutting down.
         }
     }
+
+
+    public String listDatabases() {
+        // TODO get a list of all dbs
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public String getDatabase(String database) {
+        // TODO get info about a specific db
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public String listPools() {
+        // TODO get a list of all pools
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public Message createPool() {
+        // TODO
+        return new Message("Not yet implemented", Message.Type.ERROR);
+    }
+
+
+    public String getPool(int id) {
+        // TODO get info about a specific pool
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public Message deletePool(int id) {
+        // TODO
+        return new Message("Not yet implemented", Message.Type.ERROR);
+    }
+
+
+    public String listUsers(String database) {
+        // TODO get a list of all users
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public Message createUser(String database) {
+        // TODO
+        return new Message("Not yet implemented", Message.Type.ERROR);
+    }
+
+
+    public String getUser(String database, String username) {
+        // TODO get info about a specific user
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public Message deleteUser(String database, String username) {
+        // TODO
+        return new Message("Not yet implemented", Message.Type.ERROR);
+    }
+
+
+    public String listUsers(int pool) {
+        // TODO get a list of all users
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public Message createUser(int pool) {
+        // TODO
+        return new Message("Not yet implemented", Message.Type.ERROR);
+    }
+
+
+    public String getUser(int pool, String username) {
+        // TODO get info about a specific user
+        return "{ \"message\":\"Not yet implemented.\" }";
+    }
+
+
+    public Message deleteUser(int pool, String username) {
+        // TODO
+        return new Message("Not yet implemented", Message.Type.ERROR);
+    }
 }
