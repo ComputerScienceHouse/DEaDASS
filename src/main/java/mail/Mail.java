@@ -18,12 +18,12 @@ public class Mail {
     private static final String HOST = null; //TODO
 
     // TODO need authentication on these routes.
-    private static final String REQUEST_STRING = "%s is requesting a database named %s for <code>%s</code>.\n\n"
-            + "<a href=%s/approvals>Visit the approvals page.</a>\n\n- DEaDASS";
+    private static final String REQUEST_STRING = "%s is requesting a database named %s for <code>%s</code>.<br/><br/>"
+            + "<a href=%s/approvals>Visit the approvals page.</a><br/><br/>- DEaDASS";
 
     private static final String APPROVAL_STRING = "Your database %s has been created."
-            + " Please login to DEaDASS to reset the password and obtain your access credentials.\n\n- DEaDASS";
-    private static final String DENIAL_STRING = "Your database %s has been denied.\n\n- DEaDASS";
+            + " Please login to DEaDASS to reset the password and obtain your access credentials.<br/><br/>- DEaDASS";
+    private static final String DENIAL_STRING = "Your database %s has been denied.<br/><br/>- DEaDASS";
 
     private MimeMessage msgTemplate;
 
