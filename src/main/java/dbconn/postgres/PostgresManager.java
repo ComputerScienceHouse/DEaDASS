@@ -22,9 +22,9 @@ public class PostgresManager implements DatabaseManager {
      * Initialises a new PostgresManager
      */
     public PostgresManager() {
-        String url = defaults.Secrets.POSTGRESS_CONNECTION_STRING;
+        String url = defaults.Secrets.POSTGRESS_CONNECT_STRING;
         Properties props = new Properties();
-        props.setProperty("user", defaults.Secrets.POSTGRESS_USERNAME);
+        props.setProperty("user", defaults.Secrets.POSTGRESS_USER);
         props.setProperty("password", defaults.Secrets.POSTGRESS_PASSWORD);
         props.setProperty("ssl", "true");
         try {

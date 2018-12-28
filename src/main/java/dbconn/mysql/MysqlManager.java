@@ -22,9 +22,9 @@ public class MysqlManager implements DatabaseManager {
      * Initialises a new MysqlManager
      */
     public MysqlManager() {
-        String url = defaults.Secrets.MYSQL_CONNECTION_STRING;
+        String url = defaults.Secrets.MYSQL_CONNECT_STRING;
         Properties props = new Properties();
-        props.setProperty("user", defaults.Secrets.MYSQL_USERNAME);
+        props.setProperty("user", defaults.Secrets.MYSQL_USER);
         props.setProperty("password", defaults.Secrets.MYSQL_PASSWORD);
         props.setProperty("ssl", "true");
         try {
