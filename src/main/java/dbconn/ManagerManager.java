@@ -3,13 +3,8 @@ package dbconn;
 import api.model.Message;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
+import password.Password;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.sql.*;
 import java.util.Properties;
 
@@ -20,8 +15,6 @@ import java.util.Properties;
  * @author Max Meinhold <mxmeinhold@gmail.com>
  */
 public class ManagerManager {
-
-    private URL haddock;
 
     /**
      * Get owner, is_group, approved, type, id
@@ -74,8 +67,6 @@ public class ManagerManager {
         // Connect to the database and prepare statements.
         try {
 
-            haddock = new URL("https://haddock.csh.rit.edu/length/32");
-
             managerConnection = DriverManager.getConnection(defaults.Secrets.MANAGER_CONNECT_STRING, props);
 
             String getPoolDbCount = "select count(*) as total, num_limit as limit, owner "
@@ -117,11 +108,11 @@ public class ManagerManager {
             // TODO report this in some way? Maybe email someone....
             System.err.println("Manager DB errored while connecting");
             e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         }
 
         mail = new Mail();
+
+        Password.init();
     }
 
 
@@ -209,16 +200,7 @@ public class ManagerManager {
                 insertUserStmt.setDate(5, new java.sql.Date(new java.util.Date().getTime()));
                 insertUserStmt.execute();
 
-                // Connect to haddock and generate a password or return an error trying.
-                try {
-                    URLConnection conn = haddock.openConnection();
-                    conn.connect();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    password = br.readLine();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return new Message("Failed to generate password.", Message.Type.ERROR);
-                }
+                password = Password.getPassword();
 
                 if(password.equals(""))
                     return new Message("Failed to generate password.", Message.Type.ERROR);
