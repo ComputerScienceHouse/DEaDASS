@@ -23,7 +23,11 @@ public class Secrets {
     public static final String MONGO_CONNECT_STRING = Optional.ofNullable(System.getenv("MONGO_URI")).orElse("mongodb://user:pass@server:port/db?ssl=true");
 
 
+    // You can use your mail credentials for local development
+    public static final String MAIL_HOST = Optional.ofNullable(System.getenv("MAIL_HOST")).orElse("mail.csh.rit.edu");
+    public static final String MAIL_USERNAME = Optional.ofNullable(System.getenv("MAIL_USER")).orElse("");
     public static final String MAIL_PASSWORD = Optional.ofNullable(System.getenv("MAIL_PASSWORD")).orElse("");
+    public static final String MAIL_ADMIN_UID = Optional.ofNullable(System.getenv("ADMIN_UID")).orElse("");
 
 
     public static final int DEFAULT_LIMIT = Integer.parseInt(Optional.ofNullable(System.getenv("DEFAULT-LIMIT")).orElse("5"));
