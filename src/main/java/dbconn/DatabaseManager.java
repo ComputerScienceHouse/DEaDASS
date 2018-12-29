@@ -22,9 +22,18 @@ public interface DatabaseManager {
     void delete(String dbName);
 
 
+    // TODO consider throwing error if failure occurs
+    /**
+     * Sets the user's password for the database
+     * @param dbName the database the user belongs to
+     * @param username the name of the user
+     * @param password the password to set
+     */
+    void setPassword(String dbName, String username, String password);
+
+
     /**
      * Closes the connection to the database.
      */
     void close();
-    
 }

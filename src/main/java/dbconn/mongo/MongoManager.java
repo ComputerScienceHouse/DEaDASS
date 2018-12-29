@@ -4,6 +4,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.BsonDocument;
 
 import java.util.Collections;
 
@@ -48,6 +49,15 @@ public class MongoManager implements dbconn.DatabaseManager {
         MongoDatabase db = server.getDatabase(dbName);
         db.runCommand(new BasicDBObject("dropAllUsersFromDatabase", 1));
         db.drop();
+    }
+
+
+    /** Overwrites a user's password without modifying roles. */
+    @Override
+    public void setPassword(String dbName, String username, String password) {
+        MongoDatabase db = server.getDatabase(dbName);
+        final BasicDBObject setPasswordCommand = new BasicDBObject("updateUser", username).append("pwd", password);
+        db.runCommand(setPasswordCommand);
     }
 
 

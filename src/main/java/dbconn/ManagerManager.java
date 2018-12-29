@@ -44,6 +44,8 @@ public class ManagerManager {
     private PreparedStatement deleteDBUsersStmt;
     /** Approves a database request. Param 1: dbName */
     private PreparedStatement approveStmt;
+    /** Resets a user password. Param: 1: date, 2: user */
+    private PreparedStatement setPassStmt;
 
     /** The connection object for the manager's sql db. */
     private Connection managerConnection;
@@ -103,6 +105,9 @@ public class ManagerManager {
 
             String approveDB = "update databases set approved=true where name=?";
             approveStmt = managerConnection.prepareStatement(approveDB);
+
+            String setPassword = "update users set last_reset=? where username=? and database=?";
+            setPassStmt = managerConnection.prepareStatement(setPassword);
 
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
@@ -187,7 +192,6 @@ public class ManagerManager {
         try {
             String password = "";
             getDBAndPoolStmt.setString(1, dbName);
-            System.out.println(dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
             db.next();
             if(db.getBoolean("approved")) {
@@ -326,6 +330,46 @@ public class ManagerManager {
             return create(name);
         mail.request(owner, purpose, name);
         return new Message("Database creation request sent.", Message.Type.MESSAGE);
+    }
+
+
+    /**
+     * Resets a users password
+     * @param database the database the user belongs to
+     * @param username the username of the user
+     * @return a Message containing either the password or an error
+     */
+    public Message setPassword(String database, String username) {
+        String password = Password.getPassword();
+
+        try {
+            setPassStmt.setDate(1, new Date(new java.util.Date().getTime()));
+            setPassStmt.setString(2, username);
+            setPassStmt.setString(3, database);
+            setPassStmt.execute();
+
+            getDBAndPoolStmt.setString(1, database);
+            ResultSet db = getDBAndPoolStmt.executeQuery();
+            if(!db.next())
+                return new Message("No db found", Message.Type.ERROR);
+
+            switch(db.getInt("type")) {
+                case 0: // Mongo
+                    mongo.setPassword(database, username, password);
+                    break;
+                case 1: // Postgres
+                    break;
+                case 2: // MySQL
+                    break;
+                default:
+                    return new Message("Unknown database type", Message.Type.ERROR);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Message("Failed to set password.", Message.Type.ERROR);
+        }
+
+        return new Message(password, Message.Type.SUCCESS);
     }
 
 

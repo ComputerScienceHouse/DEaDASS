@@ -52,4 +52,8 @@ public class Controller {
         return man.deny(body.get("database")).asJSON();
     }
 
+    @RequestMapping(value = "/databases/{database}/users/{username}/password", method = RequestMethod.GET, produces = "application/json")
+    public String resetPassword(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
+        return man.setPassword(database, username).asJSON();
+    }
 }
