@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 
 /**
@@ -14,15 +15,21 @@ import java.util.ArrayList;
 public class Password {
 
     private static final int LENGTH = 32;
+    /** The wordlist contains words up to 9 letters long. */
+    private static final int WORD_LENGTH = 9;
+    private static final int MINIMUM_DIGITS = 2;
     private static final String FILE = "words.txt";
     private static final char[] SYMBOLS = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~".toCharArray();
-    private static String[] words;
+    private static String[] words = null;
+    private static SecureRandom rand = null;
 
 
     /**
      * Initialises the password generator
      */
     public static void init() {
+        if(words != null || rand != null) // Only allow initialising once
+            return;
         ArrayList<String> list = new ArrayList<String>();
         BufferedReader reader = null;
         try {
@@ -43,6 +50,8 @@ public class Password {
             }
         }
         words = list.toArray(new String[list.size()]);
+
+        rand = new SecureRandom();
     }
 
 
@@ -51,11 +60,13 @@ public class Password {
      * @return the password
      */
     public static String getPassword() {
-        String password = "";
+        StringBuilder password = new StringBuilder();
         ArrayList<String> pass_words = new ArrayList<String>();
         int length = 0;
-        while(length + 2 * (pass_words.size() - 1) < LENGTH - 9) {
-            String word = words[(int)(Math.random() * words.length)];
+
+        // Add words to a list until we aren't sure we could fit another word, plus room for numbers
+        while(length + (pass_words.size() - 1) < LENGTH - (WORD_LENGTH + MINIMUM_DIGITS)) {
+            String word = words[rand.nextInt(words.length)];
             if(pass_words.contains(word))
                 continue;
 
@@ -63,22 +74,31 @@ public class Password {
             length += word.length();
         }
 
-        int unit = (LENGTH - length) / (pass_words.size() - 1);
-        length = LENGTH - length - (pass_words.size() - 1) * unit;
-
-        password += pass_words.remove(pass_words.size() - 1);
-        for(int i = 1; i < length + unit; i++)
-            password += (int)(Math.random() * 10);
-        password += SYMBOLS[(int)(Math.random() * SYMBOLS.length)];
+        // Determine how much space is left in the string,
+        // leaving space for random symbols between words`
+        int length_remaining = LENGTH - (length + (pass_words.size() - 1));
 
         while(pass_words.size() > 1) {
-            password += pass_words.remove(pass_words.size() - 1);
-            for(int j = 1; j < unit; j++)
-                password += (int)(Math.random() * 10);
-            password += SYMBOLS[(int)(Math.random() * SYMBOLS.length)];
+            // Select a word
+            password.append(pass_words.remove(pass_words.size() - 1));
+
+            // Select a number that is up to `length_remaining` digits long to fill space.
+            String random_number = String.valueOf(rand.nextInt((int) Math.pow(10, rand.nextInt(length_remaining))));
+            if(length_remaining > random_number.length()) {
+                password.append(random_number);
+                length_remaining -= random_number.length();
+            }
+
+            // Select a random symbol
+            password.append(SYMBOLS[rand.nextInt(SYMBOLS.length)]);
         }
 
-        password += pass_words.remove(0);
-        return password;
+        // Fill any extra remaining space randomly selected digits
+        for( int i = 0; i < length_remaining; i++)
+            password.append(rand.nextInt(10));
+
+        password.append(pass_words.remove(0));
+
+        return password.toString();
     }
 }
