@@ -54,6 +54,13 @@ public class Controller {
     }
 
 
+    @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.GET, produces = "application/json")
+    public String checkPending(@PathVariable(value = "database") String database) {
+        return man.isPending(database);
+    }
+
+
+    // TODO: Consider merging into one PATCH route.
     @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.POST, produces = "application/json")
     public String approveDatabase(@PathVariable(value = "database") String database) {
         return man.approve(database).asJSON();

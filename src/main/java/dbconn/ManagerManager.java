@@ -122,6 +122,30 @@ public class ManagerManager {
 
 
     /**
+     * Checks the status of a database
+     * @param database the name of the database to check
+     * @return a JSON string containing the status of the database.
+     */
+    public String isPending(String database) {
+        String status = "denied/not requested";
+        try {
+            getDBAndPoolStmt.setString(1, database);
+            ResultSet databaseResult = getDBAndPoolStmt.executeQuery();
+            if(databaseResult.next()) {
+                if (databaseResult.getBoolean("approved"))
+                    status = "approved";
+                else
+                    status = "pending";
+            }
+            databaseResult.close();
+        } catch (SQLException e) {
+            e.printStackTrace(); // TODO
+        }
+        return "{\"status\" : \"" + status + "\"}";
+    }
+
+
+    /**
      * Approves a database, creates it, and notifies the owner.
      * @param dbName the name of the database to be approved
      * @return a Message object containing the result of the operation
