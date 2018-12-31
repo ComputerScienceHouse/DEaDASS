@@ -46,6 +46,11 @@ public class ManagerManager {
     private PreparedStatement approveStmt;
     /** Resets a user password. Param: 1: date, 2: user */
     private PreparedStatement setPassStmt;
+    /**
+     * Get a of all databases and their pool info
+     * select title, owner, is_group, name, purpose, approved, type
+     */
+    private PreparedStatement getDBsStmt;
 
     /** The connection object for the manager's sql db. */
     private Connection managerConnection;
@@ -108,6 +113,11 @@ public class ManagerManager {
 
             String setPassword = "update users set last_reset=? where username=? and database=?";
             setPassStmt = managerConnection.prepareStatement(setPassword);
+
+            String getDBs = "select title, owner, is_group, name, purpose, approved, type " +
+                    "from databases, pools " +
+                    "where pool=id";
+            getDBsStmt = managerConnection.prepareStatement(getDBs);
 
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
@@ -412,9 +422,33 @@ public class ManagerManager {
     }
 
 
+    /**
+     * Get a list of all databases and their info
+     * @return a JSON format list of databases.
+     */
     public String listDatabases() {
-        // TODO get a list of all dbs
-        return "{ \"message\":\"Not yet implemented.\" }";
+        StringBuilder list = new StringBuilder();
+        list.append("[ ");
+        try {
+            ResultSet dbs = getDBsStmt.executeQuery();
+            if(dbs.next())
+                list.append(String.format("{\"pool_title\" : \"%s\", \"owner\" : \"%s\", \"owner_group\" : \"%b\", \"db_name\" : \"%s\", " +
+                                "\"purpose\" : \"%s\", \"approved\" : \"%b\", \"type\" : \"%s\"}",
+                        dbs.getString("title"), dbs.getString("owner"), dbs.getBoolean("is_group"),
+                        dbs.getString("name"), dbs.getString("purpose"), dbs.getBoolean("approved"), dbs.getString("type")));
+            while (dbs.next()) {
+                list.append(", ");
+                list.append(String.format("{\"pool_title\" : \"%s\", \"owner\" : \"%s\", \"owner_group\" : \"%b\", \"db_name\" : \"%s\", " +
+                                "\"purpose\" : \"%s\", \"approved\" : \"%b\", \"type\" : \"%s\"}",
+                        dbs.getString("title"), dbs.getString("owner"), dbs.getBoolean("is_group"),
+                        dbs.getString("name"), dbs.getString("purpose"), dbs.getBoolean("approved"), dbs.getString("type")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // TODO
+        }
+        list.append(" ]");
+        return list.toString();
     }
 
 
