@@ -1,5 +1,6 @@
 package api;
 
+import api.model.DatabaseType;
 import api.model.Message;
 import dbconn.ManagerManager;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +39,7 @@ public class Controller {
     @RequestMapping(value="/databases", method = RequestMethod.POST, produces = "application/json")
     public String createDatabase(@RequestBody Map<String, String> body) {
         return man.request(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
-                body.get("purpose"), Integer.parseInt(body.get("type"))).asJSON();
+                body.get("purpose"), DatabaseType.valueOf(body.get("type"))).asJSON();
     }
 
 

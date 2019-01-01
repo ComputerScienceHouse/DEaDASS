@@ -1,5 +1,6 @@
 package dbconn;
 
+import api.model.DatabaseType;
 import api.model.Message;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
@@ -7,6 +8,8 @@ import password.Password;
 
 import java.sql.*;
 import java.util.Properties;
+
+import static api.model.DatabaseType.*;
 
 /**
  * The manager driver.
@@ -243,14 +246,13 @@ public class ManagerManager {
                 if(password.equals(""))
                     return new Message("Failed to generate password.", Message.Type.ERROR);
 
-                // TODO enum.
-                switch (db.getInt("type")) {
-                    case 0: // Mongo
+                switch (valueOf(db.getString("type"))) {
+                    case MONGO:
                         mongo.create(dbName, password);
                         break;
-                    case 1: // Postgres
+                    case POSTGRES:
                         break;
-                    case 2: // MySQL
+                    case MYSQL:
                         break;
                     default:
                         return new Message("Unknown database type", Message.Type.ERROR);
@@ -285,14 +287,13 @@ public class ManagerManager {
             if(!db.next())
                 return new Message("No DB to delete", Message.Type.ERROR);
 
-            // TODO enum.
-            switch (db.getInt("type")) {
-                case 0: // Mongo
+            switch (DatabaseType.valueOf(db.getString("type"))) {
+                case MONGO:
                     mongo.delete(dbName);
                     break;
-                case 1: // Postgres
+                case POSTGRES:
                     break;
-                case 2: // MySQL
+                case MYSQL:
                     break;
                 default:
                     return new Message("Unknown database type", Message.Type.ERROR);
@@ -318,10 +319,10 @@ public class ManagerManager {
      * @param poolID the id number of the pool this belongs to
      * @param name the name of the new db
      * @param purpose a description of what the db is for
-     * @param type the type of db. 0 for mongo, 1 for postgress, 2 for mysql. TODO replace with an enum
+     * @param type the type of db.
      * @return a Message object containing the result of the operation
      */
-    public Message request(int poolID, String name, String purpose, int type) {
+    public Message request(int poolID, String name, String purpose, DatabaseType type) {
 
         Boolean approved = false;
         String owner = null;
@@ -350,7 +351,7 @@ public class ManagerManager {
             insertDBStmt.setInt(1, poolID);
             insertDBStmt.setString(2, name);
             insertDBStmt.setString(3, purpose);
-            insertDBStmt.setInt(4, type);
+            insertDBStmt.setString(4, type.toString());
             insertDBStmt.setBoolean(5, approved);
             insertDBStmt.execute();
 
@@ -387,13 +388,13 @@ public class ManagerManager {
             if(!db.next())
                 return new Message("No db found", Message.Type.ERROR);
 
-            switch(db.getInt("type")) {
-                case 0: // Mongo
+            switch(DatabaseType.valueOf(db.getString("type"))) {
+                case MONGO:
                     mongo.setPassword(database, username, password);
                     break;
-                case 1: // Postgres
+                case POSTGRES:
                     break;
-                case 2: // MySQL
+                case MYSQL:
                     break;
                 default:
                     return new Message("Unknown database type", Message.Type.ERROR);
