@@ -452,9 +452,24 @@ public class ManagerManager {
     }
 
 
+    /**
+     * Get a specific database
+     * @param database the database to find
+     * @return the database info as a JSON string
+     */
     public String getDatabase(String database) {
-        // TODO get info about a specific db
-        return "{ \"message\":\"Not yet implemented.\" }";
+        try {
+            this.getDBAndPoolStmt.setString(1, database);
+            ResultSet result = getDBAndPoolStmt.executeQuery();
+            if (result.next()) {
+                return String.format("{\"pool_title\" : \"%s\", \"owner\" : \"%s\", \"owner_group\" : \"%b\", \"db_name\" : \"%s\", " +
+                        "\"purpose\" : \"%s\", \"approved\" : \"%b\", \"type\" : \"%s\"}");
+            }
+            return new Message("No database by that name found.", Message.Type.ERROR).asJSON(); // TODO http status
+        } catch (SQLException e) {
+            e.printStackTrace(); // TODO
+        }
+        return new Message("SQL Error.", Message.Type.ERROR).asJSON();
     }
 
 
