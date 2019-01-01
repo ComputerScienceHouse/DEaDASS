@@ -11,13 +11,28 @@ import java.util.ArrayList;
  * @author Max Meinhold <mxmeinhold@gmail.com>
  */
 public class Database implements JSONUtils.JSONable {
-    String name;
-    String pool_title;
-    String owner;
-    boolean is_group;
-    String purpose;
-    DatabaseType type;
-    boolean approved;
+    public String name;
+    public int pool_id;
+    private String pool_title;
+    public String owner;
+    public boolean is_group;
+    public String purpose;
+    public DatabaseType type;
+    public boolean approved;
+
+    private Database() {
+
+    }
+
+
+    public Database(int pool_id, String db_name, String purpose, DatabaseType type) {
+        this.owner = null;
+        this.name = db_name;
+        this.pool_id = pool_id;
+        this.purpose = purpose;
+        this.type = type;
+        this.approved = false;
+    }
 
     /**
      * Creates a list of database objects

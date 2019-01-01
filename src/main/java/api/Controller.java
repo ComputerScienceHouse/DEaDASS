@@ -1,5 +1,6 @@
 package api;
 
+import api.model.Database;
 import api.model.DatabaseType;
 import api.model.JSONUtils;
 import api.model.Message;
@@ -46,9 +47,17 @@ public class Controller {
 
 
     @RequestMapping(value="/databases", method = RequestMethod.POST, produces = "application/json")
-    public String createDatabase(@RequestBody Map<String, String> body) {
-        return man.request(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
-                body.get("purpose"), DatabaseType.valueOf(body.get("type"))).asJSON();
+    public ResponseEntity<String> createDatabase(@RequestBody Map<String, String> body) {
+        try {
+            Database db = new Database(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
+                    body.get("purpose"), DatabaseType.valueOf(body.get("type")));
+            return ResponseEntity.status(200).body(man.request(db));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
 

@@ -3,7 +3,6 @@ package dbconn;
 import api.model.Database;
 import api.model.DatabaseType;
 import api.model.Message;
-import api.model.exception.DeadassException;
 import api.model.exception.NotFoundException;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
@@ -38,7 +37,7 @@ public class ManagerManager {
      * Param 1: pool_id, 2: dbname, 3: purpose, 4: type, 5: approved
      */
     private PreparedStatement insertDBStmt;
-    /** Get total, limit, owner. Param 1: pool id */
+    /** Get total, limit, owner, is_group. Param 1: pool id */
     private PreparedStatement getCountDBsByPoolStmt;
     /**
      * Create new user.
@@ -83,7 +82,7 @@ public class ManagerManager {
 
             managerConnection = DriverManager.getConnection(defaults.Secrets.MANAGER_CONNECT_STRING, props);
 
-            String getPoolDbCount = "select count(*) as total, num_limit as limit, owner "
+            String getPoolDbCount = "select count(*) as total, num_limit as limit, owner, is_group "
                     + "from pools, databases "
                     + "where id=pool and id=? and approved "
                     + "group by id ";
@@ -320,55 +319,51 @@ public class ManagerManager {
 
     /**
      * Creates a request for a database. If able to auto approve, also creates the db.
-     * @param poolID the id number of the pool this belongs to
-     * @param name the name of the new db
-     * @param purpose a description of what the db is for
-     * @param type the type of db.
-     * @return a Message object containing the result of the operation
+     * @param db the db object to request
+     * @return a JSON string indicating the status of the request
+     * @throws api.model.exception.SQLException if there is an error in a SQL query
+     * @throws NotFoundException if the pool ID is unrecognised.
      */
-    public Message request(int poolID, String name, String purpose, DatabaseType type) {
-
-        Boolean approved = false;
-        String owner = null;
+    public String request(Database db) throws api.model.exception.SQLException, NotFoundException {
 
         try {
             // Get a count of dbs and check if we should auto approve this request.
-            getCountDBsByPoolStmt.setInt(1,poolID);
+            getCountDBsByPoolStmt.setInt(1,db.pool_id);
             ResultSet dbs = getCountDBsByPoolStmt.executeQuery();
             if(dbs.next()) {
                 int total_dbs = dbs.getInt("total");
                 int limit = dbs.getInt("limit");
-                approved = (limit < 0) ? true : total_dbs < limit; // If -1, limit is infinity.
-                owner = dbs.getString("owner");
+                db.approved = (limit < 0) ? true : total_dbs < limit; // If -1, limit is infinity.
+                db.owner = dbs.getString("owner");
+                db.is_group = dbs.getBoolean("is_group");
             } else {
-                getPoolStmt.setInt(1, poolID);
+                getPoolStmt.setInt(1, db.pool_id);
                 ResultSet pool = getPoolStmt.executeQuery();
                 if(pool.next())
-                    approved = true;
+                    db.approved = true;
                 else
-                    return new Message("Invalid pool", Message.Type.ERROR);
+                    throw new NotFoundException("Pool ID not recognised");
                 pool.close();
             }
             dbs.close();
 
             // Insert the record into the db
-            insertDBStmt.setInt(1, poolID);
-            insertDBStmt.setString(2, name);
-            insertDBStmt.setString(3, purpose);
-            insertDBStmt.setString(4, type.toString());
-            insertDBStmt.setBoolean(5, approved);
+            insertDBStmt.setInt(1, db.pool_id);
+            insertDBStmt.setString(2, db.name);
+            insertDBStmt.setString(3, db.purpose);
+            insertDBStmt.setString(4, db.type.toString());
+            insertDBStmt.setBoolean(5, db.approved);
             insertDBStmt.execute();
 
         } catch (SQLException se) {
-            se.printStackTrace();
             // TODO specify the type of error? E.g. duplicate names.
-            return new Message("Request SQL error. Please try again or report to an RTP.", Message.Type.ERROR);
+            throw new api.model.exception.SQLException(se);
         }
 
-        if(approved)
-            return create(name);
-        mail.request(owner, purpose, name);
-        return new Message("Database creation request sent.", Message.Type.MESSAGE);
+        if(db.approved)
+            return create(db.name);
+        mail.request(db.owner, db.purpose, db.name);
+        return "{ \"status\" : \"requested\" }";
     }
 
 
