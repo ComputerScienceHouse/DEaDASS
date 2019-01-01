@@ -1,12 +1,16 @@
 package dbconn;
 
+import api.model.Database;
 import api.model.DatabaseType;
 import api.model.Message;
+import api.model.exception.DeadassException;
+import api.model.exception.NotFoundException;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
 import password.Password;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import static api.model.DatabaseType.*;
@@ -424,53 +428,33 @@ public class ManagerManager {
 
 
     /**
-     * Get a list of all databases and their info
-     * @return a JSON format list of databases.
+     * Gets a list of all databases known to the system
+     * @return a list of databases
+     * @throws api.model.exception.SQLException if there is an error while processing the Query
      */
-    public String listDatabases() {
-        StringBuilder list = new StringBuilder();
-        list.append("[ ");
+    public ArrayList<Database> listDatabases() throws api.model.exception.SQLException {
         try {
-            ResultSet dbs = getDBsStmt.executeQuery();
-            if(dbs.next())
-                list.append(String.format("{\"pool_title\" : \"%s\", \"owner\" : \"%s\", \"owner_group\" : \"%b\", \"db_name\" : \"%s\", " +
-                                "\"purpose\" : \"%s\", \"approved\" : \"%b\", \"type\" : \"%s\"}",
-                        dbs.getString("title"), dbs.getString("owner"), dbs.getBoolean("is_group"),
-                        dbs.getString("name"), dbs.getString("purpose"), dbs.getBoolean("approved"), dbs.getString("type")));
-            while (dbs.next()) {
-                list.append(", ");
-                list.append(String.format("{\"pool_title\" : \"%s\", \"owner\" : \"%s\", \"owner_group\" : \"%b\", \"db_name\" : \"%s\", " +
-                                "\"purpose\" : \"%s\", \"approved\" : \"%b\", \"type\" : \"%s\"}",
-                        dbs.getString("title"), dbs.getString("owner"), dbs.getBoolean("is_group"),
-                        dbs.getString("name"), dbs.getString("purpose"), dbs.getBoolean("approved"), dbs.getString("type")));
-            }
+            return Database.parseDatabases(getDBsStmt.executeQuery());
         } catch (SQLException e) {
-            e.printStackTrace();
-            // TODO
+            throw new api.model.exception.SQLException(e);
         }
-        list.append(" ]");
-        return list.toString();
     }
 
 
     /**
-     * Get a specific database
-     * @param database the database to find
-     * @return the database info as a JSON string
+     * Gets a specific database
+     * @param database the name of the database to find
+     * @return the Database object representing the requested database
+     * @throws api.model.exception.SQLException if there is an error while processing the Query
+     * @throws NotFoundException if the database name is unrecognised.
      */
-    public String getDatabase(String database) {
+    public Database getDatabase(String database) throws api.model.exception.SQLException, NotFoundException {
         try {
             this.getDBAndPoolStmt.setString(1, database);
-            ResultSet result = getDBAndPoolStmt.executeQuery();
-            if (result.next()) {
-                return String.format("{\"pool_title\" : \"%s\", \"owner\" : \"%s\", \"owner_group\" : \"%b\", \"db_name\" : \"%s\", " +
-                        "\"purpose\" : \"%s\", \"approved\" : \"%b\", \"type\" : \"%s\"}");
-            }
-            return new Message("No database by that name found.", Message.Type.ERROR).asJSON(); // TODO http status
+            return Database.parseDatabase(getDBAndPoolStmt.executeQuery());
         } catch (SQLException e) {
-            e.printStackTrace(); // TODO
+            throw new api.model.exception.SQLException(e);
         }
-        return new Message("SQL Error.", Message.Type.ERROR).asJSON();
     }
 
 
