@@ -289,17 +289,18 @@ public class ManagerManager {
     /**
      * Deletes a database.
      * @param dbName the name of the database to delete
-     * @return a Message object containing the result of the operation
+     * @return a JSON string containing the result of the operation
+     * @throws api.model.exception.SQLException if there is an exception while accessing the management database
+     * @throws NotFoundException if the database type is not recognised or no database is found
      */
-    public Message delete(String dbName) {
-        System.out.println(dbName);
+    public String delete(String dbName) throws NotFoundException, api.model.exception.SQLException {
         // Get the db. Delete it. Drop the record. Drop its users.
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
 
             if(!db.next())
-                return new Message("No DB to delete", Message.Type.ERROR);
+                throw new NotFoundException("No database to delete");
 
             switch (DatabaseType.valueOf(db.getString("type"))) {
                 case MONGO:
@@ -310,7 +311,7 @@ public class ManagerManager {
                 case MYSQL:
                     break;
                 default:
-                    return new Message("Unknown database type", Message.Type.ERROR);
+                    throw new NotFoundException("Unrecognised database type");
             }
 
             deleteDBUsersStmt.setString(1, dbName);
@@ -320,11 +321,10 @@ public class ManagerManager {
             deleteDBStmt.execute();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new api.model.exception.SQLException(e);
             // TODO specify the type of error? E.g. duplicate names.
-            return new Message("Delete SQL error. Please try again or report to an RTP.", Message.Type.ERROR);
         }
-        return new Message("Database sucessfully deleted.", Message.Type.SUCCESS);
+        return JSONUtils.toJSON(new HashMap<String, Object>().put("status", "deleted"));
     }
 
 

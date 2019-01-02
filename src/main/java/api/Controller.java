@@ -78,8 +78,15 @@ public class Controller {
 
 
     @RequestMapping(value="/databases/{database}", method = RequestMethod.DELETE, produces = "application/json")
-    public String deleteDatabase(@PathVariable(value = "database") String database) {
-        return man.delete(database).asJSON();
+    public ResponseEntity<String> deleteDatabase(@PathVariable(value = "database") String database) {
+        try {
+            return ResponseEntity.status(200).body(man.delete(database));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
 
