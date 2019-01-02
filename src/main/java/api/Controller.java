@@ -51,7 +51,7 @@ public class Controller {
         try {
             Database db = new Database(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
                     body.get("purpose"), DatabaseType.valueOf(body.get("type")));
-            return ResponseEntity.status(200).body(man.request(db));
+            return ResponseEntity.status(201).body(man.request(db));
         } catch (SQLException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("SQL Exception");
