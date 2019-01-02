@@ -132,26 +132,26 @@ public class Controller {
 
     // Database User routes
     @RequestMapping(value = "/databases/{database}/users", method = RequestMethod.GET, produces = "appliction/json")
-    public String getUsers(@PathVariable(value = "database") String database) {
-        return man.listUsers(database);
+    public ResponseEntity<String> getUsers(@PathVariable(value = "database") String database) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     @RequestMapping(value = "/databases/{database}/users", method = RequestMethod.POST, produces = "application/json")
-    public String createUser(@PathVariable(value = "database") String database, @RequestBody Map<String, String> body) {
-        return man.createUser(database).asJSON(); // TODO args
+    public ResponseEntity<String> createUser(@PathVariable(value = "database") String database, @RequestBody Map<String, String> body) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     @RequestMapping(value = "/databases/{database}/users/{username}", method = RequestMethod.GET, produces = "application/json")
-    public String getUser(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
-        return man.getUser(database, username);
+    public ResponseEntity<String> getUser(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     @RequestMapping(value = "/databases/{database}/users/{username}", method = RequestMethod.DELETE, produces = "application/json")
-    public String deleteUser(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
-        return man.deleteUser(database, username).asJSON();
+    public ResponseEntity<String> deleteUser(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
@@ -175,35 +175,32 @@ public class Controller {
 
 
     @RequestMapping(value = "/pools", method = RequestMethod.GET, produces = "appliction/json")
-    public String getPools() {
-        return man.listPools();
+    public ResponseEntity<String> getPools() {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     @RequestMapping(value = "/pools", method = RequestMethod.POST, produces = "application/json")
-    public String createPool(@RequestBody Map<String, String> body) {
-        return man.createPool().asJSON(); // TODO args
+    public ResponseEntity<String> createPool(@RequestBody Map<String, String> body) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     @RequestMapping(value = "/pools/{id}", method = RequestMethod.GET, produces = "application/json")
-    public String getPool(@PathVariable(value = "id") int id) {
-        return man.getPool(id);
+    public ResponseEntity<String> getPool(@PathVariable(value = "id") int id) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     @RequestMapping(value = "/pools/{id}", method = RequestMethod.DELETE, produces = "application/json")
-    public String deletePool(@PathVariable(value = "id") int id) {
-        return man.deletePool(id).asJSON();
+    public ResponseEntity<String> deletePool(@PathVariable(value = "id") int id) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
 
 
     // Pool User Routes - can't get specific user by pool since they are only unique by database.
     @RequestMapping(value = "/pools/{id}/users", method = RequestMethod.GET, produces = "appliction/json")
-    public String getUsers(@PathVariable(value = "id") int poolID) {
-        return man.listUsers(poolID);
+    public ResponseEntity<String> getUsers(@PathVariable(value = "id") int poolID) {
+        return ResponseEntity.status(501).body("Not yet implemented");
     }
-
-
-    // TODO PATCH?
 }

@@ -3,14 +3,11 @@ package dbconn;
 import api.model.Database;
 import api.model.DatabaseType;
 import api.model.JSONUtils;
-import api.model.Message;
 import api.model.exception.BadRequestException;
 import api.model.exception.NotFoundException;
-import com.mongodb.util.JSON;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
 import password.Password;
-import sun.awt.image.BadDepthException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static api.model.DatabaseType.*;
+import static api.model.DatabaseType.valueOf;
 
 /**
  * The manager driver.
@@ -383,7 +380,7 @@ public class ManagerManager {
      * @param database the database the user belongs to
      * @param username the username of the user
      * @return the password
-     * @throws api.model.exception.SQLException if the password cannot be set
+     * @throws api.model.exception.SQLException if the password cann
      * @throws NotFoundException if the database type is not recognised or the database cannot be found
      */
     public String setPassword(String database, String username) throws NotFoundException, api.model.exception.SQLException {
@@ -462,77 +459,5 @@ public class ManagerManager {
         } catch (SQLException e) {
             throw new api.model.exception.SQLException(e);
         }
-    }
-
-
-    public String listPools() {
-        // TODO get a list of all pools
-        return "{ \"message\":\"Not yet implemented.\" }";
-    }
-
-
-    public Message createPool() {
-        // TODO
-        return new Message("Not yet implemented", Message.Type.ERROR);
-    }
-
-
-    public String getPool(int id) {
-        // TODO get info about a specific pool
-        return "{ \"message\":\"Not yet implemented.\" }";
-    }
-
-
-    public Message deletePool(int id) {
-        // TODO
-        return new Message("Not yet implemented", Message.Type.ERROR);
-    }
-
-
-    public String listUsers(String database) {
-        // TODO get a list of all users
-        return "{ \"message\":\"Not yet implemented.\" }";
-    }
-
-
-    public Message createUser(String database) {
-        // TODO
-        return new Message("Not yet implemented", Message.Type.ERROR);
-    }
-
-
-    public String getUser(String database, String username) {
-        // TODO get info about a specific user
-        return "{ \"message\":\"Not yet implemented.\" }";
-    }
-
-
-    public Message deleteUser(String database, String username) {
-        // TODO
-        return new Message("Not yet implemented", Message.Type.ERROR);
-    }
-
-
-    public String listUsers(int pool) {
-        // TODO get a list of all users
-        return "{ \"message\":\"Not yet implemented.\" }";
-    }
-
-
-    public Message createUser(int pool) {
-        // TODO
-        return new Message("Not yet implemented", Message.Type.ERROR);
-    }
-
-
-    public String getUser(int pool, String username) {
-        // TODO get info about a specific user
-        return "{ \"message\":\"Not yet implemented.\" }";
-    }
-
-
-    public Message deleteUser(int pool, String username) {
-        // TODO
-        return new Message("Not yet implemented", Message.Type.ERROR);
     }
 }
