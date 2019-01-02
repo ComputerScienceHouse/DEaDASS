@@ -3,7 +3,6 @@ package api;
 import api.model.Database;
 import api.model.DatabaseType;
 import api.model.JSONUtils;
-import api.model.Message;
 import api.model.exception.BadRequestException;
 import api.model.exception.NotFoundException;
 import api.model.exception.SQLException;
@@ -11,6 +10,7 @@ import dbconn.ManagerManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -27,12 +27,6 @@ public class Controller {
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String root() {
         return "Hello World!";
-    }
-
-
-    @RequestMapping(value="/message", method = RequestMethod.GET, produces = "application/json")
-    public String messageTest() {
-        return new Message("Testing message return", Message.Type.MESSAGE).asJSON();
     }
 
 
@@ -162,8 +156,21 @@ public class Controller {
 
 
     @RequestMapping(value = "/databases/{database}/users/{username}/password", method = RequestMethod.POST, produces = "application/json")
-    public String resetPassword(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
-        return man.setPassword(database, username).asJSON();
+    public ResponseEntity<String> resetPassword(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
+        Map<String, Object> message = new HashMap<String, Object>();
+        message.put("status", "error");
+        try {
+            message.put("password", man.setPassword(database, username));
+            message.put("status", "success");
+            return ResponseEntity.status(200).body(JSONUtils.toJSON(message));
+        } catch (NotFoundException e) {
+            message.put("message", e.getMessage());
+            return ResponseEntity.status(404).body(JSONUtils.toJSON(message));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            message.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(JSONUtils.toJSON(message));
+        }
     }
 
 

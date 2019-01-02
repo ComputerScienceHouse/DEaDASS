@@ -382,9 +382,11 @@ public class ManagerManager {
      * Resets a users password
      * @param database the database the user belongs to
      * @param username the username of the user
-     * @return a Message containing either the password or an error
+     * @return the password
+     * @throws api.model.exception.SQLException if the password cannot be set
+     * @throws NotFoundException if the database type is not recognised or the database cannot be found
      */
-    public Message setPassword(String database, String username) {
+    public String setPassword(String database, String username) throws NotFoundException, api.model.exception.SQLException {
         String password = Password.getPassword();
 
         try {
@@ -396,7 +398,7 @@ public class ManagerManager {
             getDBAndPoolStmt.setString(1, database);
             ResultSet db = getDBAndPoolStmt.executeQuery();
             if(!db.next())
-                return new Message("No db found", Message.Type.ERROR);
+                throw new NotFoundException("Unrecognised database");
 
             switch(DatabaseType.valueOf(db.getString("type"))) {
                 case MONGO:
@@ -407,14 +409,13 @@ public class ManagerManager {
                 case MYSQL:
                     break;
                 default:
-                    return new Message("Unknown database type", Message.Type.ERROR);
+                    throw new NotFoundException("Unrecognised database type");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return new Message("Failed to set password.", Message.Type.ERROR);
+            throw new api.model.exception.SQLException("Failed to set password", e);
         }
 
-        return new Message(password, Message.Type.SUCCESS);
+        return password;
     }
 
 

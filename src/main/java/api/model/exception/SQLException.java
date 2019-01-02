@@ -8,4 +8,8 @@ public class SQLException extends DeadassException {
     public SQLException(java.sql.SQLException e) {
         super(e);
     }
+
+    public SQLException(String message, java.sql.SQLException e) {
+        super(message, e);
+    }
 }
