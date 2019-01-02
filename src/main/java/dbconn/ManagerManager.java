@@ -1,8 +1,6 @@
 package dbconn;
 
-import api.model.Database;
-import api.model.DatabaseType;
-import api.model.JSONUtils;
+import api.model.*;
 import api.model.exception.BadRequestException;
 import api.model.exception.NotFoundException;
 import dbconn.mongo.MongoManager;
@@ -10,10 +8,8 @@ import mail.Mail;
 import password.Password;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.sql.Date;
+import java.util.*;
 
 import static api.model.DatabaseType.valueOf;
 
@@ -60,6 +56,7 @@ public class ManagerManager {
      * select title, owner, is_group, name, purpose, approved, type
      */
     private PreparedStatement getDBsStmt;
+    private PreparedStatement getPoolsStmt;
 
     /** The connection object for the manager's sql db. */
     private Connection managerConnection;
@@ -127,6 +124,8 @@ public class ManagerManager {
                     "from databases, pools " +
                     "where pool=id";
             getDBsStmt = managerConnection.prepareStatement(getDBs);
+
+            getPoolsStmt  = managerConnection.prepareStatement("select * from pools");
 
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
@@ -436,9 +435,9 @@ public class ManagerManager {
      * @return a list of databases
      * @throws api.model.exception.SQLException if there is an error while processing the Query
      */
-    public ArrayList<Database> listDatabases() throws api.model.exception.SQLException {
+    public ArrayList<DatabaseObject> listDatabases() throws api.model.exception.SQLException {
         try {
-            return Database.parseDatabases(getDBsStmt.executeQuery());
+            return new Database().parseList(getDBsStmt.executeQuery());
         } catch (SQLException e) {
             throw new api.model.exception.SQLException(e);
         }
@@ -455,7 +454,38 @@ public class ManagerManager {
     public Database getDatabase(String database) throws api.model.exception.SQLException, NotFoundException {
         try {
             this.getDBAndPoolStmt.setString(1, database);
-            return Database.parseDatabase(getDBAndPoolStmt.executeQuery());
+            return new Database().parse(getDBAndPoolStmt.executeQuery());
+        } catch (SQLException e) {
+            throw new api.model.exception.SQLException(e);
+        }
+    }
+
+
+    /**
+     * Gets a list of all pools known to the system
+     * @return the list of pools
+     * @throws api.model.exception.SQLException if there is an error while processing the query
+     */
+    public ArrayList<DatabaseObject> listPools() throws api.model.exception.SQLException {
+        try {
+            return new Pool().parseList(getPoolsStmt.executeQuery());
+        } catch (SQLException e) {
+            throw new api.model.exception.SQLException(e);
+        }
+    }
+
+
+    /**
+     * Gets a specific pool
+     * @param id the id of the pool to find
+     * @return the Database object representing the requested pool
+     * @throws api.model.exception.SQLException if there is an error while processing the Query
+     * @throws NotFoundException if the pool id is unrecognised.
+     */
+    public DatabaseObject getPool(int id) throws NotFoundException, api.model.exception.SQLException {
+        try {
+            getPoolStmt.setInt(1, id);
+            return new Pool().parse(getPoolStmt.executeQuery());
         } catch (SQLException e) {
             throw new api.model.exception.SQLException(e);
         }

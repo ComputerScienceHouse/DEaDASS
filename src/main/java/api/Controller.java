@@ -176,7 +176,12 @@ public class Controller {
 
     @RequestMapping(value = "/pools", method = RequestMethod.GET, produces = "appliction/json")
     public ResponseEntity<String> getPools() {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        try {
+            return ResponseEntity.status(200).body(JSONUtils.toJSON(man.listPools()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        }
     }
 
 
@@ -188,7 +193,14 @@ public class Controller {
 
     @RequestMapping(value = "/pools/{id}", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> getPool(@PathVariable(value = "id") int id) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        try {
+            return ResponseEntity.status(200).body(JSONUtils.toJSON(man.getPool(id)));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
 
