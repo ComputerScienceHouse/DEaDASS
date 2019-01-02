@@ -1,5 +1,7 @@
 package api.model;
 
+import java.util.Map;
+
 /**
  * A set of utilities for converting model objects to JSON
  * @author Max Meinhold <mxmeinhold@gmail.com>
@@ -38,6 +40,20 @@ public class JSONUtils {
             }
             list.replace(list.lastIndexOf(","), list.length(), " ]");
             return list.toString();
+        }
+
+        // If it's a map, it's basically JSON already...
+        if (object instanceof Map) {
+            Map<String, ?> map = (Map) object;
+            StringBuilder json = new StringBuilder("{ ");
+            for( String key: map.keySet()) {
+                json.append("\"");
+                json.append(key);
+                json.append("\" : \"");
+                json.append(toJSON(map.get(key)));
+                json.append("\", ");
+            }
+            json.replace(json.lastIndexOf(","),json.length()," }");
         }
 
         // Everything else is essentially a literal so just give up.

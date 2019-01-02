@@ -4,6 +4,7 @@ import api.model.Database;
 import api.model.DatabaseType;
 import api.model.JSONUtils;
 import api.model.Message;
+import api.model.exception.BadRequestException;
 import api.model.exception.NotFoundException;
 import api.model.exception.SQLException;
 import dbconn.ManagerManager;
@@ -57,6 +58,8 @@ public class Controller {
             return ResponseEntity.status(500).body("SQL Exception");
         } catch (NotFoundException e) {
             return ResponseEntity.status(404).body(e.getMessage());
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(401).body(e.getMessage());
         }
     }
 
@@ -81,21 +84,48 @@ public class Controller {
 
 
     @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.GET, produces = "application/json")
-    public String checkPending(@PathVariable(value = "database") String database) {
-        return man.isPending(database);
+    public ResponseEntity<String> checkPending(@PathVariable(value = "database") String database) {
+        try {
+            return ResponseEntity.status(200).body(man.isPending(database));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        }
     }
 
 
     // TODO: Consider merging into one PATCH route.
     @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.POST, produces = "application/json")
-    public String approveDatabase(@PathVariable(value = "database") String database) {
-        return man.approve(database).asJSON();
+    public ResponseEntity<String> approveDatabase(@PathVariable(value = "database") String database) {
+        try {
+            String response = man.approve(database);
+            if(response.contains("password"))
+                return ResponseEntity.status(201).body(response);
+            else
+                return ResponseEntity.status(202).body(response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
     }
 
 
     @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.DELETE, produces = "application/json")
-    public String denyDatabase(@PathVariable(value = "database") String database) {
-        return man.deny(database).asJSON();
+    public ResponseEntity<String> denyDatabase(@PathVariable(value = "database") String database) {
+        try {
+            return ResponseEntity.status(200).body(man.deny(database));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
     }
 
 

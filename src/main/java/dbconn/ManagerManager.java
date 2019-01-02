@@ -2,14 +2,20 @@ package dbconn;
 
 import api.model.Database;
 import api.model.DatabaseType;
+import api.model.JSONUtils;
 import api.model.Message;
+import api.model.exception.BadRequestException;
 import api.model.exception.NotFoundException;
+import com.mongodb.util.JSON;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
 import password.Password;
+import sun.awt.image.BadDepthException;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static api.model.DatabaseType.*;
@@ -141,8 +147,9 @@ public class ManagerManager {
      * Checks the status of a database
      * @param database the name of the database to check
      * @return a JSON string containing the status of the database.
+     * @throws api.model.exception.SQLException if there is an exception while processing the query
      */
-    public String isPending(String database) {
+    public String isPending(String database) throws api.model.exception.SQLException {
         String status = "denied/not requested";
         try {
             getDBAndPoolStmt.setString(1, database);
@@ -155,27 +162,30 @@ public class ManagerManager {
             }
             databaseResult.close();
         } catch (SQLException e) {
-            e.printStackTrace(); // TODO
+            throw new api.model.exception.SQLException(e);
         }
-        return "{\"status\" : \"" + status + "\"}";
+        return JSONUtils.toJSON(new HashMap<String, Object>().put("status", status));
     }
 
 
     /**
      * Approves a database, creates it, and notifies the owner.
      * @param dbName the name of the database to be approved
-     * @return a Message object containing the result of the operation
+     * @return a JSON string containing the result of the operation
+     * @throws BadRequestException if the request is invalid
+     * @throws api.model.exception.SQLException if there is an exception while accessing the management database
+     * @throws NotFoundException if there is no database to approve
      */
-    public Message approve(String dbName) {
+    public String approve(String dbName) throws BadRequestException, api.model.exception.SQLException, NotFoundException {
         // Get the db. Check not approved yet. Set approved. Send email, call normal create.
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
             if(!db.next())
-                return new Message("No DB by that name to approve", Message.Type.ERROR);
+                throw new NotFoundException("Database name unrecognised");
             String owner = db.getString("owner");
             if (db.getBoolean("approved"))
-                return new Message("Database already approved.", Message.Type.ERROR);
+                throw new BadRequestException("Database already approved");
 
             approveStmt.setString(1, dbName);
             approveStmt.execute();
@@ -185,26 +195,28 @@ public class ManagerManager {
             db.close();
 
         } catch (SQLException e) {
-            e.printStackTrace();
             // TODO specify the type of error? E.g. duplicate names.
-            return new Message("SQL error occurred. Try again or check logs.", Message.Type.ERROR);
+            throw new api.model.exception.SQLException(e);
         }
-        return new Message("Database approved.", Message.Type.SUCCESS);
+        return JSONUtils.toJSON(new HashMap<String, Object>().put("status", "created"));
     }
 
 
     /**
      * Deletes a standing database request and notifies the requester.
      * @param dbName the database to deny.
-     * @return a Message object containing the result of the action.
+     * @return a JSON string containing the result of the action.
+     * @throws BadRequestException if the request is invalid
+     * @throws api.model.exception.SQLException if there is an exception while accessing the management database
+     * @throws NotFoundException if there is no database to deny
      */
-    public Message deny(String dbName) {
+    public String deny(String dbName) throws NotFoundException, BadRequestException, api.model.exception.SQLException {
         // Just drop the request.
         try {
             getDBAndPoolStmt.setString(1, dbName);
             ResultSet db = getDBAndPoolStmt.executeQuery();
             if(!db.next())
-                return new Message("No DB by that name", Message.Type.ERROR);
+                throw new NotFoundException("Database name unrecognised");
             if (!db.getBoolean("approved")) {
                 String owner = db.getString("owner");
                 mail.deny(owner, dbName);
@@ -212,12 +224,11 @@ public class ManagerManager {
                 // Drop it.
                 deleteDBStmt.setString(1, dbName);
                 deleteDBStmt.execute();
-                return new Message("DB request deleted.", Message.Type.SUCCESS);
+                return JSONUtils.toJSON(new HashMap<String, Object>().put("status", "deleted"));
             } else
-                return new Message("DB not awaiting request.", Message.Type.ERROR);
+                throw new BadRequestException("Database not awaiting request");
         } catch (SQLException se) {
-            se.printStackTrace();
-            return new Message("SQL error. Try again or check logs.", Message.Type.ERROR);
+            throw new api.model.exception.SQLException(se);
         }
     }
 
@@ -225,9 +236,12 @@ public class ManagerManager {
     /**
      * Creates a new database.
      * @param dbName The name of the database to be created
-     * @return a Message object containing the result of the operation
+     * @return a JSON string containing the result of the operation
+     * @throws BadRequestException if the request is invalid
+     * @throws api.model.exception.SQLException if there is an exception while accessing the management database
+     * @throws NotFoundException if the database type is not recognised
      */
-    private Message create(String dbName) {
+    private String create(String dbName) throws api.model.exception.SQLException, NotFoundException, BadRequestException {
         // Get the db. Check approved. Set a password. Call the child create
         try {
             String password = "";
@@ -246,9 +260,6 @@ public class ManagerManager {
 
                 password = Password.getPassword();
 
-                if(password.equals(""))
-                    return new Message("Failed to generate password.", Message.Type.ERROR);
-
                 switch (valueOf(db.getString("type"))) {
                     case MONGO:
                         mongo.create(dbName, password);
@@ -258,20 +269,20 @@ public class ManagerManager {
                     case MYSQL:
                         break;
                     default:
-                        return new Message("Unknown database type", Message.Type.ERROR);
+                        throw new NotFoundException("Unrecognised database type");
                 }
             } else {
-                return new Message("Specified database not marked as approved.", Message.Type.ERROR);
+                throw new BadRequestException("Specified database not marked as approved");
             }
             db.close();
-            if(!password.equals("") )
-                return new Message("password:" + password, Message.Type.SUCCESS);
+            Map<String, Object> returnMapping = new HashMap<String, Object>();
+            returnMapping.put("status", "created");
+            returnMapping.put("password", password);
+            return JSONUtils.toJSON(returnMapping);
         } catch (SQLException se) {
-            se.printStackTrace();
+            throw new api.model.exception.SQLException(se);
             // TODO specify the type of error? E.g. duplicate names.
-            return new Message("Create SQL error. Please try again or report to an RTP.", Message.Type.ERROR);
         }
-        return new Message("Create failed to generate a password.", Message.Type.ERROR);
     }
 
 
@@ -324,7 +335,7 @@ public class ManagerManager {
      * @throws api.model.exception.SQLException if there is an error in a SQL query
      * @throws NotFoundException if the pool ID is unrecognised.
      */
-    public String request(Database db) throws api.model.exception.SQLException, NotFoundException {
+    public String request(Database db) throws api.model.exception.SQLException, NotFoundException, BadRequestException {
 
         try {
             // Get a count of dbs and check if we should auto approve this request.
