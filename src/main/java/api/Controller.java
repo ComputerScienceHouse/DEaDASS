@@ -1,7 +1,12 @@
 package api;
 
+import api.model.DatabaseType;
+import api.model.JSONUtils;
 import api.model.Message;
+import api.model.exception.NotFoundException;
+import api.model.exception.SQLException;
 import dbconn.ManagerManager;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -30,21 +35,33 @@ public class Controller {
 
 
     @RequestMapping(value="/databases", method = RequestMethod.GET, produces = "application/json")
-    public String getDatabases() {
-        return man.listDatabases();
+    public ResponseEntity<String> getDatabases() {
+        try {
+            return ResponseEntity.status(200).body(JSONUtils.toJSON(man.listDatabases()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        }
     }
 
 
     @RequestMapping(value="/databases", method = RequestMethod.POST, produces = "application/json")
     public String createDatabase(@RequestBody Map<String, String> body) {
         return man.request(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
-                body.get("purpose"), Integer.parseInt(body.get("type"))).asJSON();
+                body.get("purpose"), DatabaseType.valueOf(body.get("type"))).asJSON();
     }
 
 
     @RequestMapping(value = "/databases/{database}", method = RequestMethod.GET, produces = "application/json")
-    public String getDatabase(@PathVariable(value = "database") String database) {
-        return man.getDatabase(database);
+    public ResponseEntity<String> getDatabase(@PathVariable(value = "database") String database) {
+        try {
+            return ResponseEntity.status(200).body(man.getDatabase(database).asJSON());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("SQL Exception");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
 
@@ -54,6 +71,13 @@ public class Controller {
     }
 
 
+    @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.GET, produces = "application/json")
+    public String checkPending(@PathVariable(value = "database") String database) {
+        return man.isPending(database);
+    }
+
+
+    // TODO: Consider merging into one PATCH route.
     @RequestMapping(value = "/databases/{database}/approval", method = RequestMethod.POST, produces = "application/json")
     public String approveDatabase(@PathVariable(value = "database") String database) {
         return man.approve(database).asJSON();
@@ -91,7 +115,7 @@ public class Controller {
     }
 
 
-    @RequestMapping(value = "/databases/{database}/users/{username}/password", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/databases/{database}/users/{username}/password", method = RequestMethod.POST, produces = "application/json")
     public String resetPassword(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
         return man.setPassword(database, username).asJSON();
     }

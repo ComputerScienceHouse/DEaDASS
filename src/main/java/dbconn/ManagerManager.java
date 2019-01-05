@@ -1,12 +1,19 @@
 package dbconn;
 
+import api.model.Database;
+import api.model.DatabaseType;
 import api.model.Message;
+import api.model.exception.DeadassException;
+import api.model.exception.NotFoundException;
 import dbconn.mongo.MongoManager;
 import mail.Mail;
 import password.Password;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Properties;
+
+import static api.model.DatabaseType.*;
 
 /**
  * The manager driver.
@@ -46,6 +53,11 @@ public class ManagerManager {
     private PreparedStatement approveStmt;
     /** Resets a user password. Param: 1: date, 2: user */
     private PreparedStatement setPassStmt;
+    /**
+     * Get a of all databases and their pool info
+     * select title, owner, is_group, name, purpose, approved, type
+     */
+    private PreparedStatement getDBsStmt;
 
     /** The connection object for the manager's sql db. */
     private Connection managerConnection;
@@ -109,6 +121,11 @@ public class ManagerManager {
             String setPassword = "update users set last_reset=? where username=? and database=?";
             setPassStmt = managerConnection.prepareStatement(setPassword);
 
+            String getDBs = "select title, owner, is_group, name, purpose, approved, type " +
+                    "from databases, pools " +
+                    "where pool=id";
+            getDBsStmt = managerConnection.prepareStatement(getDBs);
+
         } catch (SQLException e) {
             // TODO report this in some way? Maybe email someone....
             System.err.println("Manager DB errored while connecting");
@@ -118,6 +135,30 @@ public class ManagerManager {
         mail = new Mail();
 
         Password.init();
+    }
+
+
+    /**
+     * Checks the status of a database
+     * @param database the name of the database to check
+     * @return a JSON string containing the status of the database.
+     */
+    public String isPending(String database) {
+        String status = "denied/not requested";
+        try {
+            getDBAndPoolStmt.setString(1, database);
+            ResultSet databaseResult = getDBAndPoolStmt.executeQuery();
+            if(databaseResult.next()) {
+                if (databaseResult.getBoolean("approved"))
+                    status = "approved";
+                else
+                    status = "pending";
+            }
+            databaseResult.close();
+        } catch (SQLException e) {
+            e.printStackTrace(); // TODO
+        }
+        return "{\"status\" : \"" + status + "\"}";
     }
 
 
@@ -209,14 +250,13 @@ public class ManagerManager {
                 if(password.equals(""))
                     return new Message("Failed to generate password.", Message.Type.ERROR);
 
-                // TODO enum.
-                switch (db.getInt("type")) {
-                    case 0: // Mongo
+                switch (valueOf(db.getString("type"))) {
+                    case MONGO:
                         mongo.create(dbName, password);
                         break;
-                    case 1: // Postgres
+                    case POSTGRES:
                         break;
-                    case 2: // MySQL
+                    case MYSQL:
                         break;
                     default:
                         return new Message("Unknown database type", Message.Type.ERROR);
@@ -251,14 +291,13 @@ public class ManagerManager {
             if(!db.next())
                 return new Message("No DB to delete", Message.Type.ERROR);
 
-            // TODO enum.
-            switch (db.getInt("type")) {
-                case 0: // Mongo
+            switch (DatabaseType.valueOf(db.getString("type"))) {
+                case MONGO:
                     mongo.delete(dbName);
                     break;
-                case 1: // Postgres
+                case POSTGRES:
                     break;
-                case 2: // MySQL
+                case MYSQL:
                     break;
                 default:
                     return new Message("Unknown database type", Message.Type.ERROR);
@@ -284,10 +323,10 @@ public class ManagerManager {
      * @param poolID the id number of the pool this belongs to
      * @param name the name of the new db
      * @param purpose a description of what the db is for
-     * @param type the type of db. 0 for mongo, 1 for postgress, 2 for mysql. TODO replace with an enum
+     * @param type the type of db.
      * @return a Message object containing the result of the operation
      */
-    public Message request(int poolID, String name, String purpose, int type) {
+    public Message request(int poolID, String name, String purpose, DatabaseType type) {
 
         Boolean approved = false;
         String owner = null;
@@ -316,7 +355,7 @@ public class ManagerManager {
             insertDBStmt.setInt(1, poolID);
             insertDBStmt.setString(2, name);
             insertDBStmt.setString(3, purpose);
-            insertDBStmt.setInt(4, type);
+            insertDBStmt.setString(4, type.toString());
             insertDBStmt.setBoolean(5, approved);
             insertDBStmt.execute();
 
@@ -353,13 +392,13 @@ public class ManagerManager {
             if(!db.next())
                 return new Message("No db found", Message.Type.ERROR);
 
-            switch(db.getInt("type")) {
-                case 0: // Mongo
+            switch(DatabaseType.valueOf(db.getString("type"))) {
+                case MONGO:
                     mongo.setPassword(database, username, password);
                     break;
-                case 1: // Postgres
+                case POSTGRES:
                     break;
-                case 2: // MySQL
+                case MYSQL:
                     break;
                 default:
                     return new Message("Unknown database type", Message.Type.ERROR);
@@ -388,15 +427,34 @@ public class ManagerManager {
     }
 
 
-    public String listDatabases() {
-        // TODO get a list of all dbs
-        return "{ \"message\":\"Not yet implemented.\" }";
+    /**
+     * Gets a list of all databases known to the system
+     * @return a list of databases
+     * @throws api.model.exception.SQLException if there is an error while processing the Query
+     */
+    public ArrayList<Database> listDatabases() throws api.model.exception.SQLException {
+        try {
+            return Database.parseDatabases(getDBsStmt.executeQuery());
+        } catch (SQLException e) {
+            throw new api.model.exception.SQLException(e);
+        }
     }
 
 
-    public String getDatabase(String database) {
-        // TODO get info about a specific db
-        return "{ \"message\":\"Not yet implemented.\" }";
+    /**
+     * Gets a specific database
+     * @param database the name of the database to find
+     * @return the Database object representing the requested database
+     * @throws api.model.exception.SQLException if there is an error while processing the Query
+     * @throws NotFoundException if the database name is unrecognised.
+     */
+    public Database getDatabase(String database) throws api.model.exception.SQLException, NotFoundException {
+        try {
+            this.getDBAndPoolStmt.setString(1, database);
+            return Database.parseDatabase(getDBAndPoolStmt.executeQuery());
+        } catch (SQLException e) {
+            throw new api.model.exception.SQLException(e);
+        }
     }
 
 
