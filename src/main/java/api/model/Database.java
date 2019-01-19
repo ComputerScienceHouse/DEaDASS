@@ -4,7 +4,6 @@ import api.model.exception.NotFoundException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 /**
  * A java object representing database information and containing utility methods for processing database queries
@@ -13,9 +12,9 @@ import java.util.ArrayList;
 public class Database extends DatabaseObject {
     public String name;
     public int pool_id;
-    private String pool_title;
+    public String poolTitle;
     public String owner;
-    public boolean is_group;
+    public boolean isGroup;
     public String purpose;
     public DatabaseType type;
     public boolean approved;
@@ -46,9 +45,9 @@ public class Database extends DatabaseObject {
     public Database parse(ResultSet db) throws SQLException, NotFoundException {
         if(db.next()) {
             this.name       = db.getString("name");
-            this.pool_title = db.getString("title");
+            this.poolTitle = db.getString("title");
             this.owner      = db.getString("owner");
-            this.is_group   = db.getBoolean("is_group");
+            this.isGroup = db.getBoolean("is_group");
             this.purpose    = db.getString("purpose");
             this.type       = DatabaseType.fromString(db.getString("type"));
             this.approved   = db.getBoolean("approved");
@@ -56,13 +55,5 @@ public class Database extends DatabaseObject {
         } else {
             throw new NotFoundException("Database name unrecognised.");
         }
-    }
-
-
-    @Override
-    public String asJSON() {
-        return String.format("{ \"name\" : \"%s\", \"pool\" : \"%s\", \"owner\" : \"%s\", \"is_group\" : \"%b\", "
-                        + "\"purpose\" : \"%s\", \"type\" : \"%s\", \"approved\" : \"%b\" }",
-                this.name, this.pool_title, this.owner, this.is_group, this.purpose, this.type.toString(), this.approved);
     }
 }
