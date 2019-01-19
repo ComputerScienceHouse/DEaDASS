@@ -35,7 +35,7 @@ public class Controller {
             return ResponseEntity.status(200).body(man.listDatabases());
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         }
     }
 
@@ -48,11 +48,11 @@ public class Controller {
             return ResponseEntity.status(201).body(man.request(db));
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         } catch (BadRequestException e) {
-            return ResponseEntity.status(401).body(e.getMessage());
+            return ResponseEntity.status(401).body(wrapError(e.getMessage()));
         }
     }
 
@@ -63,9 +63,9 @@ public class Controller {
             return ResponseEntity.status(200).body(man.getDatabase(database));
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         }
     }
 
@@ -76,9 +76,9 @@ public class Controller {
             return ResponseEntity.status(200).body(man.delete(database));
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         }
     }
 
@@ -89,7 +89,7 @@ public class Controller {
             return ResponseEntity.status(200).body(man.isPending(database));
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         }
     }
 
@@ -105,11 +105,11 @@ public class Controller {
                 return ResponseEntity.status(202).body(response);
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         } catch (BadRequestException e) {
-            return ResponseEntity.status(401).body(e.getMessage());
+            return ResponseEntity.status(401).body(wrapError(e.getMessage()));
         }
     }
 
@@ -120,11 +120,11 @@ public class Controller {
             return ResponseEntity.status(200).body(man.deny(database));
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         } catch (BadRequestException e) {
-            return ResponseEntity.status(401).body(e.getMessage());
+            return ResponseEntity.status(401).body(wrapError(e.getMessage()));
         }
     }
 
@@ -132,43 +132,40 @@ public class Controller {
     // Database User routes
     @RequestMapping(value = "/databases/{database}/users", method = RequestMethod.GET, produces = "appliction/json")
     public ResponseEntity<Object> getUsers(@PathVariable(value = "database") String database) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
     }
 
 
     @RequestMapping(value = "/databases/{database}/users", method = RequestMethod.POST, produces = "application/json")
     public ResponseEntity<Object> createUser(@PathVariable(value = "database") String database, @RequestBody Map<String, String> body) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
     }
 
 
     @RequestMapping(value = "/databases/{database}/users/{username}", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<Object> getUser(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
     }
 
 
     @RequestMapping(value = "/databases/{database}/users/{username}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity<Object> deleteUser(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
     }
 
 
     @RequestMapping(value = "/databases/{database}/users/{username}/password", method = RequestMethod.POST, produces = "application/json")
     public ResponseEntity<Object> resetPassword(@PathVariable(value = "database") String database, @PathVariable(value = "username") String username) {
-        Map<String, Object> message = new HashMap<String, Object>();
-        message.put("status", "error");
         try {
+            Map<String, Object> message = new HashMap<String, Object>();
             message.put("password", man.setPassword(database, username));
             message.put("status", "success");
             return ResponseEntity.status(200).body(message);
         } catch (NotFoundException e) {
-            message.put("message", e.getMessage());
-            return ResponseEntity.status(404).body(message);
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         } catch (SQLException e) {
             e.printStackTrace();
-            message.put("message", e.getMessage());
-            return ResponseEntity.status(500).body(message);
+            return ResponseEntity.status(500).body(wrapError(e.getMessage()));
         }
     }
 
@@ -179,14 +176,14 @@ public class Controller {
             return ResponseEntity.status(200).body(man.listPools());
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         }
     }
 
 
     @RequestMapping(value = "/pools", method = RequestMethod.POST, produces = "application/json")
     public ResponseEntity<Object> createPool(@RequestBody Map<String, String> body) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
     }
 
 
@@ -196,22 +193,38 @@ public class Controller {
             return ResponseEntity.status(200).body(man.getPool(id));
         } catch (SQLException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("SQL Exception");
+            return ResponseEntity.status(500).body(wrapError("SQL Exception"));
         } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body(wrapError(e.getMessage()));
         }
     }
 
 
     @RequestMapping(value = "/pools/{id}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity<Object> deletePool(@PathVariable(value = "id") int id) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
     }
 
 
     // Pool User Routes - can't get specific user by pool since they are only unique by database.
     @RequestMapping(value = "/pools/{id}/users", method = RequestMethod.GET, produces = "appliction/json")
     public ResponseEntity<Object> getUsers(@PathVariable(value = "id") int poolID) {
-        return ResponseEntity.status(501).body("Not yet implemented");
+        return ResponseEntity.status(501).body(wrapError("Not yet implemented"));
+    }
+
+
+    /**
+     * Wraps an error message in a map so it serialises to JSON error format
+     * @param message the error message
+     * @return A map that will serialise to JSON error format containing message as title
+     */
+    private Map<String, Object> wrapError(String message) {
+        Map<String, String> error = new HashMap<String, String>();
+        error.put("title", message);
+        Map<String, String>[] array = new Map[]{error};
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("errors", array);
+        map.put("status", "error");
+        return map;
     }
 }
