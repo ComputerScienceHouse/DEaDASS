@@ -67,6 +67,11 @@ public class PostgresManager implements DatabaseManager {
     }
 
     @Override
+    public void setPassword(String dbName, String username, String password) {
+        //TODO
+    }
+
+    @Override
     public void close() {
         try {
             conn.close();

@@ -1,12 +1,12 @@
 package dbconn.mysql;
 
+import dbconn.DatabaseManager;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
-
-import dbconn.DatabaseManager;
 
 public class MysqlManager implements DatabaseManager {
 
@@ -64,6 +64,11 @@ public class MysqlManager implements DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void setPassword(String dbName, String username, String password) {
+        //TODO
     }
 
     @Override

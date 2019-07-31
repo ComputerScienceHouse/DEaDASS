@@ -8,8 +8,10 @@ import mail.Mail;
 import password.Password;
 
 import java.sql.*;
-import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import static api.model.DatabaseType.valueOf;
 

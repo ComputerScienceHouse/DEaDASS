@@ -4,7 +4,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import org.bson.BsonDocument;
 
 import java.util.Collections;
 
