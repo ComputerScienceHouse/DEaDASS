@@ -13,4 +13,14 @@ public enum DatabaseType {
     public String toString() {
         return this.type;
     }
+
+
+    public static DatabaseType fromString(String type) {
+        for (DatabaseType t : values()) {
+            if (t.type.equalsIgnoreCase(type)) {
+                return t;
+            }
+        }
+        return null;
+    }
 }

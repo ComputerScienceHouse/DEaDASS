@@ -45,7 +45,7 @@ public class Controller {
     public ResponseEntity<String> createDatabase(@RequestBody Map<String, String> body) {
         try {
             Database db = new Database(Integer.parseInt(body.get("pool_id")), body.get("db_name"),
-                    body.get("purpose"), DatabaseType.valueOf(body.get("type")));
+                    body.get("purpose"), DatabaseType.fromString(body.get("type")));
             return ResponseEntity.status(201).body(man.request(db));
         } catch (SQLException e) {
             e.printStackTrace();

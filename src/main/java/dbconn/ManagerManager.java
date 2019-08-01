@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static api.model.DatabaseType.valueOf;
 
 /**
  * The manager driver.
@@ -258,7 +257,7 @@ public class ManagerManager {
 
                 password = Password.getPassword();
 
-                switch (valueOf(db.getString("type"))) {
+                switch (DatabaseType.fromString(db.getString("type"))) {
                     case MONGO:
                         mongo.create(dbName, password);
                         break;
@@ -300,7 +299,7 @@ public class ManagerManager {
             if(!db.next())
                 throw new NotFoundException("No database to delete");
 
-            switch (DatabaseType.valueOf(db.getString("type"))) {
+            switch (DatabaseType.fromString(db.getString("type"))) {
                 case MONGO:
                     mongo.delete(dbName);
                     break;
@@ -398,7 +397,7 @@ public class ManagerManager {
             if(!db.next())
                 throw new NotFoundException("Unrecognised database");
 
-            switch(DatabaseType.valueOf(db.getString("type"))) {
+            switch(DatabaseType.fromString(db.getString("type"))) {
                 case MONGO:
                     mongo.setPassword(database, username, password);
                     break;

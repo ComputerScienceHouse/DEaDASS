@@ -50,7 +50,7 @@ public class Database extends DatabaseObject {
             this.owner      = db.getString("owner");
             this.is_group   = db.getBoolean("is_group");
             this.purpose    = db.getString("purpose");
-            this.type       = DatabaseType.valueOf(db.getString("type"));
+            this.type       = DatabaseType.fromString(db.getString("type"));
             this.approved   = db.getBoolean("approved");
             return this;
         } else {
