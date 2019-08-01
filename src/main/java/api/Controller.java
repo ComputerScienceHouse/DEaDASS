@@ -7,6 +7,7 @@ import api.model.exception.BadRequestException;
 import api.model.exception.NotFoundException;
 import api.model.exception.SQLException;
 import dbconn.ManagerManager;
+import defaults.Secrets;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +18,10 @@ import java.util.Map;
 /**
  * The spring route controller for the api.
  *
+ * TODO: Remove localhost once live
  * @author Max Meinhold <mxmeinhold@gmail.com>
  */
+@CrossOrigin(origins = {"https://deadass.csh.rit.edu", "http://localhost:3000"}, maxAge = 3600)
 @RestController
 public class Controller {
 
