@@ -31,4 +31,5 @@ public class Secrets {
 
 
     public static final int DEFAULT_LIMIT = Integer.parseInt(Optional.ofNullable(System.getenv("DEFAULT-LIMIT")).orElse("5"));
+    public static final String[] ORIGINS = Optional.ofNullable(System.getenv("ALLOWED_ORIGINS")).orElse("https://deadass.csh.rit.edu").split(",? ");
 }
