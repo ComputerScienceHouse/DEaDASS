@@ -344,7 +344,7 @@ public class ManagerManager {
 
         try {
             // Get a count of dbs and check if we should auto approve this request.
-            getCountDBsByPoolStmt.setInt(1,db.pool_id);
+            getCountDBsByPoolStmt.setInt(1,db.poolID);
             ResultSet dbs = getCountDBsByPoolStmt.executeQuery();
             if(dbs.next()) {
                 int total_dbs = dbs.getInt("total");
@@ -353,7 +353,7 @@ public class ManagerManager {
                 db.owner = dbs.getString("owner");
                 db.isGroup = dbs.getBoolean("is_group");
             } else {
-                getPoolStmt.setInt(1, db.pool_id);
+                getPoolStmt.setInt(1, db.poolID);
                 ResultSet pool = getPoolStmt.executeQuery();
                 if(pool.next())
                     db.approved = true;
@@ -364,7 +364,7 @@ public class ManagerManager {
             dbs.close();
 
             // Insert the record into the db
-            insertDBStmt.setInt(1, db.pool_id);
+            insertDBStmt.setInt(1, db.poolID);
             insertDBStmt.setString(2, db.name);
             insertDBStmt.setString(3, db.purpose);
             insertDBStmt.setString(4, db.type.toString());

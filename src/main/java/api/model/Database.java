@@ -1,7 +1,10 @@
 package api.model;
 
 import api.model.exception.NotFoundException;
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.constraints.NotNull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -10,12 +13,16 @@ import java.sql.SQLException;
  * @author Max Meinhold <mxmeinhold@gmail.com>
  */
 public class Database extends DatabaseObject {
+    @NotBlank(message = "must specify `name`")
     public String name;
-    public int pool_id;
+    @NotNull(message = "must specify `poolID`")
+    public int poolID;
     public String poolTitle;
     public String owner;
     public boolean isGroup;
+    @NotBlank(message = "must specify `purpose`")
     public String purpose;
+    @NotBlank(message = "must specify `type`")
     public DatabaseType type;
     public boolean approved;
 
@@ -24,10 +31,10 @@ public class Database extends DatabaseObject {
     }
 
 
-    public Database(int pool_id, String db_name, String purpose, DatabaseType type) {
+    public Database(int poolID, String db_name, String purpose, DatabaseType type) {
         this.owner = null;
         this.name = db_name;
-        this.pool_id = pool_id;
+        this.poolID = poolID;
         this.purpose = purpose;
         this.type = type;
         this.approved = false;
