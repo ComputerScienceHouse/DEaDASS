@@ -1,0 +1,22 @@
+{
+    "name": "DEaDASS",
+    "description": "Database Execution and Deletion Administrative Self Service",
+    "license": "MIT",
+    "contributors": [
+        "Max Meinhold <mxmeinhold@gmail.com>",
+        "Devin Matté <devinmatte@gmail.com>"
+    ],
+    "scripts": {},
+    "dependencies": {
+    },
+    "devDependencies": {
+        "typescript": "^3.9.7",
+        "@typescript-eslint/eslint-plugin": "^3.7.1",
+        "@typescript-eslint/parser": "^3.7.1",
+        "eslint": "^7.6.0",
+        "eslint-config-prettier": "^6.11.0",
+        "eslint-plugin-prettier": "^3.1.4",
+        "prettier": "^2.0.5"
+    },
+    "private": true
+}
