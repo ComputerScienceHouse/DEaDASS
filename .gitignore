@@ -4,6 +4,7 @@
 gradlew
 gradlew.bat
 DEdDASS.iml
+package-lock.json
 
 # testing
 /coverage
@@ -30,3 +31,7 @@ DEaDASS.iml
 DEaDASS.ipr
 DEaDASS.iws
 src/defaults/Secrets.java
+build
+node_modules
+dist
+.env.local
