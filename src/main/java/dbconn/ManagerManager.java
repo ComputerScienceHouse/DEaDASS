@@ -146,7 +146,7 @@ public class ManagerManager {
      * @return a JSON string containing the status of the database.
      * @throws api.model.exception.SQLException if there is an exception while processing the query
      */
-    public String isPending(String database) throws api.model.exception.SQLException {
+    public Map<String, Object> isPending(String database) throws api.model.exception.SQLException {
         String status = "denied/not requested";
         try {
             getDBAndPoolStmt.setString(1, database);
@@ -161,7 +161,9 @@ public class ManagerManager {
         } catch (SQLException e) {
             throw new api.model.exception.SQLException(e);
         }
-        return JSONUtils.toJSON(new HashMap<String, Object>().put("status", status));
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("status", status);
+        return map;
     }
 
 
@@ -173,7 +175,7 @@ public class ManagerManager {
      * @throws api.model.exception.SQLException if there is an exception while accessing the management database
      * @throws NotFoundException if there is no database to approve
      */
-    public String approve(String dbName) throws BadRequestException, api.model.exception.SQLException, NotFoundException {
+    public Map<String, Object> approve(String dbName) throws BadRequestException, api.model.exception.SQLException, NotFoundException {
         // Get the db. Check not approved yet. Set approved. Send email, call normal create.
         try {
             getDBAndPoolStmt.setString(1, dbName);
@@ -195,7 +197,9 @@ public class ManagerManager {
             // TODO specify the type of error? E.g. duplicate names.
             throw new api.model.exception.SQLException(e);
         }
-        return JSONUtils.toJSON(new HashMap<String, Object>().put("status", "created"));
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("status", "created");
+        return map;
     }
 
 
@@ -207,7 +211,7 @@ public class ManagerManager {
      * @throws api.model.exception.SQLException if there is an exception while accessing the management database
      * @throws NotFoundException if there is no database to deny
      */
-    public String deny(String dbName) throws NotFoundException, BadRequestException, api.model.exception.SQLException {
+    public Map<String, Object> deny(String dbName) throws NotFoundException, BadRequestException, api.model.exception.SQLException {
         // Just drop the request.
         try {
             getDBAndPoolStmt.setString(1, dbName);
@@ -221,7 +225,9 @@ public class ManagerManager {
                 // Drop it.
                 deleteDBStmt.setString(1, dbName);
                 deleteDBStmt.execute();
-                return JSONUtils.toJSON(new HashMap<String, Object>().put("status", "deleted"));
+                Map<String, Object> map = new HashMap<String, Object>();
+                map.put("status", "deleted");
+                return map;
             } else
                 throw new BadRequestException("Database not awaiting request");
         } catch (SQLException se) {
@@ -238,7 +244,7 @@ public class ManagerManager {
      * @throws api.model.exception.SQLException if there is an exception while accessing the management database
      * @throws NotFoundException if the database type is not recognised
      */
-    private String create(String dbName) throws api.model.exception.SQLException, NotFoundException, BadRequestException {
+    private Map<String, Object> create(String dbName) throws api.model.exception.SQLException, NotFoundException, BadRequestException {
         // Get the db. Check approved. Set a password. Call the child create
         try {
             String password = "";
@@ -275,7 +281,7 @@ public class ManagerManager {
             Map<String, Object> returnMapping = new HashMap<String, Object>();
             returnMapping.put("status", "created");
             returnMapping.put("password", password);
-            return JSONUtils.toJSON(returnMapping);
+            return returnMapping;
         } catch (SQLException se) {
             throw new api.model.exception.SQLException(se);
             // TODO specify the type of error? E.g. duplicate names.
@@ -290,7 +296,7 @@ public class ManagerManager {
      * @throws api.model.exception.SQLException if there is an exception while accessing the management database
      * @throws NotFoundException if the database type is not recognised or no database is found
      */
-    public String delete(String dbName) throws NotFoundException, api.model.exception.SQLException {
+    public Map<String, Object> delete(String dbName) throws NotFoundException, api.model.exception.SQLException {
         // Get the db. Delete it. Drop the record. Drop its users.
         try {
             getDBAndPoolStmt.setString(1, dbName);
@@ -321,7 +327,9 @@ public class ManagerManager {
             throw new api.model.exception.SQLException(e);
             // TODO specify the type of error? E.g. duplicate names.
         }
-        return JSONUtils.toJSON(new HashMap<String, Object>().put("status", "deleted"));
+        Map <String, Object> map = new HashMap<String, Object>();
+        map.put("status", "deleted");
+        return map;
     }
 
 
@@ -332,20 +340,20 @@ public class ManagerManager {
      * @throws api.model.exception.SQLException if there is an error in a SQL query
      * @throws NotFoundException if the pool ID is unrecognised.
      */
-    public String request(Database db) throws api.model.exception.SQLException, NotFoundException, BadRequestException {
+    public Map<String, Object> request(Database db) throws api.model.exception.SQLException, NotFoundException, BadRequestException {
 
         try {
             // Get a count of dbs and check if we should auto approve this request.
-            getCountDBsByPoolStmt.setInt(1,db.pool_id);
+            getCountDBsByPoolStmt.setInt(1,db.poolID);
             ResultSet dbs = getCountDBsByPoolStmt.executeQuery();
             if(dbs.next()) {
                 int total_dbs = dbs.getInt("total");
                 int limit = dbs.getInt("limit");
                 db.approved = (limit < 0) ? true : total_dbs < limit; // If -1, limit is infinity.
                 db.owner = dbs.getString("owner");
-                db.is_group = dbs.getBoolean("is_group");
+                db.isGroup = dbs.getBoolean("is_group");
             } else {
-                getPoolStmt.setInt(1, db.pool_id);
+                getPoolStmt.setInt(1, db.poolID);
                 ResultSet pool = getPoolStmt.executeQuery();
                 if(pool.next())
                     db.approved = true;
@@ -356,7 +364,7 @@ public class ManagerManager {
             dbs.close();
 
             // Insert the record into the db
-            insertDBStmt.setInt(1, db.pool_id);
+            insertDBStmt.setInt(1, db.poolID);
             insertDBStmt.setString(2, db.name);
             insertDBStmt.setString(3, db.purpose);
             insertDBStmt.setString(4, db.type.toString());
@@ -371,7 +379,9 @@ public class ManagerManager {
         if(db.approved)
             return create(db.name);
         mail.request(db.owner, db.purpose, db.name);
-        return "{ \"status\" : \"requested\" }";
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("status", "requested");
+        return map;
     }
 
 

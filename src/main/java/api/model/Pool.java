@@ -7,11 +7,11 @@ import java.sql.SQLException;
 
 public class Pool extends DatabaseObject {
 
-    private String owner;
-    private boolean is_group;
-    private int limit;
-    private int id;
-    private String title;
+    public String owner;
+    public boolean is_group;
+    public int limit;
+    public int id;
+    public String title;
 
 
     public Pool() {
@@ -47,17 +47,5 @@ public class Pool extends DatabaseObject {
             return this;
         } else
             throw new NotFoundException("No pool found");
-    }
-
-
-    /**
-     * Converts this object to a JSON string
-     *
-     * @return a JSON string representing the object.
-     */
-    @Override
-    public String asJSON() {
-        // TODO
-        return null;
     }
 }

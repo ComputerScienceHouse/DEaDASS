@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Represents a row in the database.
  * @author Max Meinhold <mxmeinhold@gmail.com>
  */
-public abstract class DatabaseObject implements JSONUtils.JSONable {
+public abstract class DatabaseObject {
 
 
     /**
