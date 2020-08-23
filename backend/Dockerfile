@@ -47,7 +47,8 @@ RUN yarn install --production=true
 
 # Project setup
 COPY . /opt/deadass
+RUN webpack --mode production
 
 USER 1001
 
-CMD ["node"]
+CMD ["node", "dist/bundle.js"]

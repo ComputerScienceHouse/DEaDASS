@@ -3,6 +3,7 @@ const ESLintPlugin = require("eslint-webpack-plugin");
 module.exports = {
   target: "node",
   entry: "./src/main.ts",
+  mode: "development",
   plugins: [
     new ESLintPlugin({
       extensions: [".ts", ".tsx"],
