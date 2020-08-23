@@ -9,7 +9,7 @@ WORKDIR /opt/deadass
 # Wordlist - The american dictionary, removing apostrophes, short words, accent marks
 RUN apt-get update \
     && apt-get install -y wamerican \
-    && cat /usr/share/dict/words | grep -v "'" | awk '{ if (length($0) > 2) print }' | grep -Pv '[^\x00-\x7F]' > words.txt \
+    && cat /usr/share/dict/words | grep -v "'" | awk '{ if (length($0) > 2) print tolower($0)}' | grep -Pv '[^\x00-\x7F]' | uniq > words.txt \
     && apt-get purge -y wamerican
 
 # Yarn and nvm install deps
