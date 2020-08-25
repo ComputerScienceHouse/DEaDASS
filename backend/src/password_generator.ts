@@ -9,20 +9,14 @@ function getRandomNumber() {
 }
 
 class PasswordGenerator {
-  private wordlist: string[];
-  private max_length: number;
-  constructor(
-    private wordlist_filepath: string,
-    private max_length: number = 32
+  private readonly wordlist: string[];
+  private readonly max_length: number;
+
+  public constructor(
+    wordlist_filepath: string,
+    private readonly max_length: number = 32
   ) {
     this.wordlist = fs.readFileSync(wordlist_filepath, "utf8").split("\n");
-    this.max_length = max_length;
-    this.word_length = 0;
-    for (const word: string of this.wordlist) {
-      if (word.length > this.word_length) {
-        this.word_length = word.length;
-      }
-    }
   }
 
   public genPassword() {
@@ -92,4 +86,4 @@ class PasswordGenerator {
   }
 }
 
-module.exports = PasswordGenerator;
+export = PasswordGenerator;

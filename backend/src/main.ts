@@ -1,4 +1,4 @@
 import PasswordGenerator = require("./password_generator");
-const generator = new PasswordGenerator("./words.txt");
+const generator: PasswordGenerator = new PasswordGenerator("./words.txt");
 
 console.log(`Generated password: ${generator.genPassword()}`);
