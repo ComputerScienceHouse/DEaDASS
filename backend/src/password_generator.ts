@@ -3,6 +3,7 @@ import fs = require("fs");
 
 const symbols: string[] = Array.from("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
 const min_digits = 4;
+const num_symbols = 0;
 
 /**
  * Get a random 32 bit number using the crypto API.
@@ -42,7 +43,7 @@ class PasswordGenerator {
     // leaving some room for numbers
     // Current length + room for digits + room for symbols < max_length
     while (
-      cur_length + pass_words.length * (min_digits + 1) <
+      cur_length + pass_words.length * (min_digits + num_symbols) <
       this.max_length
     ) {
       const word: string = this.wordlist[
@@ -56,7 +57,9 @@ class PasswordGenerator {
 
       // Also don't use any words that are too long
       if (
-        word.length + cur_length + (pass_words.length - 1) * (1 + min_digits) >
+        word.length +
+          cur_length +
+          (pass_words.length - 1) * (num_symbols + min_digits) >
         this.max_length
       ) {
         continue;
@@ -84,8 +87,10 @@ class PasswordGenerator {
         length_remaining -= random_number.length;
       }
 
-      // Select a random symbol
-      password += symbols[getRandomNumber() % symbols.length];
+      // Select random symbols
+      for (let i = 0; i < num_symbols; i++) {
+        password += symbols[getRandomNumber() % symbols.length];
+      }
     }
 
     // Fill any remaining space with randomly selected digits
