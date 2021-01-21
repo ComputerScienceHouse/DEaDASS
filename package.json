@@ -1,0 +1,26 @@
+{
+  "name": "@csh/deadass",
+  "description": "Database Execution and Deletion Administrative Self Service",
+  "version": "0.1.0",
+  "license": "MIT",
+  "contributors": [
+    "Max Meinhold <mxmeinhold@gmail.com>",
+    "Devin Matté <devinmatte@gmail.com>"
+  ],
+  "scripts": {
+      "lint": "yarn workspace @csh/deadass-frontend lint && yarn workspace @csh/deadass-backend lint"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "repository": {
+      "type": "git",
+      "url": "git+https://github.com/ComputerScienceHouse/DEaDASS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ComputerScienceHouse/DEaDASS/issues"
+  },
+  "homepage": "https://github.com/ComputerScienceHouse/DEaDASS#readme",
+  "private": true
+}

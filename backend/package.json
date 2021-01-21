@@ -1,12 +1,14 @@
 {
-  "name": "DEaDASS",
-  "description": "Database Execution and Deletion Administrative Self Service",
+  "name": "@csh/deadass-backend",
+  "version": "0.1.0",
   "license": "MIT",
   "contributors": [
     "Max Meinhold <mxmeinhold@gmail.com>",
     "Devin Matté <devinmatte@gmail.com>"
   ],
   "scripts": {
+    "start": "node dist/bundle.js",
+    "build": "webpack",
     "lint": "eslint '*/**/*.{ts,tsx}'",
     "lint:fix": "eslint '*/**/*.{ts,tsx}' --fix"
   },

@@ -1,5 +1,5 @@
 {
-  "name": "deadass",
+  "name": "@csh/deadass-frontend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
