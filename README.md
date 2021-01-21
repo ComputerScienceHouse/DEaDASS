@@ -1,3 +1,5 @@
+![Frontend CI](https://github.com/ComputerScienceHouse/DEaDASS/workflows/Node%20CI%20for%20the%20frontend/badge.svg) ![Backend CI](https://github.com/ComputerScienceHouse/DEaDASS/workflows/Node%20CI%20for%20the%20backend/badge.svg)
+
 # The rewrite
 DEaDASS was originally started in Java with spring, but is being rewritten in
 typescript with node. This readme will be updated to reflect this change
