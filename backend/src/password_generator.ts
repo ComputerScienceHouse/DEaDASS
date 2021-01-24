@@ -72,8 +72,7 @@ class PasswordGenerator {
 
     // Determine how much space is left in the password for digits,
     // leaving space for random symbols between words.
-    let length_remaining: number =
-      this.max_length - (cur_length + (pass_words.length - 1));
+    let length_remaining: number = this.max_length - cur_length;
 
     while (pass_words.length > 1) {
       // Select a word
@@ -93,7 +92,6 @@ class PasswordGenerator {
         password += symbols[getRandomNumber() % symbols.length];
       }
     }
-
     // Fill any remaining space with randomly selected digits
     while (length_remaining > 0) {
       password += getRandomNumber() % 10;
