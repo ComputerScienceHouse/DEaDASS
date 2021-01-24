@@ -10,13 +10,15 @@
     "start": "node dist/bundle.js",
     "build": "webpack",
     "lint": "eslint '*/**/*.{ts,tsx}'",
-    "lint:fix": "eslint '*/**/*.{ts,tsx}' --fix"
+    "lint:fix": "eslint '*/**/*.{ts,tsx}' --fix",
+    "test": "jest"
   },
   "dependencies": {
     "mongodb": "^3.6.3",
     "nodemailer": "^6.4.11"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.20",
     "@types/mongodb": "^3.6.3",
     "@types/node": "^14.6.0",
     "@types/nodemailer": "^6.4.0",
@@ -28,7 +30,9 @@
     "eslint-loader": "^4.0.2",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-webpack-plugin": "^2.1.0",
+    "jest": "^26.6.3",
     "prettier": "^2.0.5",
+    "ts-jest": "^26.4.4",
     "ts-loader": "^8.0.2",
     "typescript": "^3.9.7",
     "webpack": "^4.44.1",

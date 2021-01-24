@@ -3,6 +3,7 @@
     "ms-azuretools.vscode-docker",
     "github.vscode-pull-request-github",
     "ms-vscode.vscode-typescript-next",
-    "gamunu.vscode-yarn"
+    "gamunu.vscode-yarn",
+    "orta.vscode-jest"
   ]
 }

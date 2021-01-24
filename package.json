@@ -8,7 +8,8 @@
     "Devin Matté <devinmatte@gmail.com>"
   ],
   "scripts": {
-      "lint": "yarn workspace @csh/deadass-frontend lint && yarn workspace @csh/deadass-backend lint"
+      "lint": "yarn workspace @csh/deadass-frontend lint && yarn workspace @csh/deadass-backend lint",
+      "test": "yarn workspace @csh/deadass-frontend test && yarn workspace @csh/deadass-backend test"
   },
   "workspaces": [
     "frontend",

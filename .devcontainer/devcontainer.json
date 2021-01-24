@@ -46,7 +46,8 @@
 		"lldb.executable": "/usr/bin/lldb",
 		"files.watcherExclude": {
 			"**/target/**": true
-		}
+		},
+		"jest.pathToConfig": "backend/jest.config.js"
 	},
 	"remoteUser": "codespace",
 	"overrideCommand": false,
@@ -63,7 +64,8 @@
 		"mtxr.sqltools",
 		"mtxr.sqltools-driver-pg",
     "mtxr.sqltools-driver-mysql",
-    "mongodb.mongodb-vscode"
+    "mongodb.mongodb-vscode",
+    "orta.vscode-jest"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

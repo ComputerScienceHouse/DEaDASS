@@ -46,3 +46,6 @@ jobs:
 
       - name: Build
         run: yarn workspace ${{ matrix.yarn-workspace }} build
+
+      - name: Test
+        run: yarn workspace ${{ matrix.yarn-workspace }} test
