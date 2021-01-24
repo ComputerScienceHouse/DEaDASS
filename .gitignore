@@ -1,3 +1,6 @@
+# Don't commit the entire dictionary
+words.txt
+
 .idea
 .project
 .classpath
