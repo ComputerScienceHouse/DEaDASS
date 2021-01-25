@@ -72,5 +72,5 @@
 	// "forwardPorts": [],
 
 	// "oryx build" will automatically install your dependencies and attempt to build your project
-	"postCreateCommand": "yarn"
+	"postCreateCommand": "yarn; ln -s  ~/words.txt ~/workspace/DEaDASS/words.txt; ln -s ~/words.txt ~/workspace/DEaDASS/backend/words.txt"
 }
