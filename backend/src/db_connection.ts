@@ -1,4 +1,4 @@
-interface DBConnection {
+export interface DBConnection {
   /**
    * Initialise the database conection
    * @returns A promise. When resolved, the database connection will be valid
@@ -10,6 +10,12 @@ interface DBConnection {
    * @returns A promise resolving to a list of all dbs
    */
   list_dbs(): Promise<string[]>;
+
+  /**
+   * Get a list of all users
+   * @returns A promise
+   */
+  list_users(): Promise<DBUser[]>;
 
   /**
    * Create a new database, using the db_name to create a new user
@@ -42,4 +48,7 @@ interface DBConnection {
   close(): Promise<void>;
 }
 
-export default DBConnection;
+export type DBUser = {
+  user: string;
+  roles: Array<{ role: string; db: string }>;
+};

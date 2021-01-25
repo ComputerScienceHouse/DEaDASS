@@ -1,5 +1,13 @@
-import DBConnection from "../db_connection";
+import type { DBConnection, DBUser } from "../db_connection";
 import { MongoClient } from "mongodb";
+
+interface SystemUsersSchema {
+  _id: unknown;
+  user: string;
+  db: string;
+  roles: Array<{ role: string; db: string }>;
+  customData: unknown;
+}
 
 class Mongo implements DBConnection {
   private readonly client: MongoClient;
@@ -24,6 +32,20 @@ class Mongo implements DBConnection {
       .then((response: { databases: Array<{ name: string }> }) =>
         response.databases.map((db: { name: string }) => db.name)
       );
+  }
+
+  public list_users(): Promise<DBUser[]> {
+    return this.client
+      .db("admin")
+      .collection("system.users")
+      .find()
+      .map((document: SystemUsersSchema) => {
+        return {
+          user: document.user,
+          roles: document.roles,
+        };
+      })
+      .toArray();
   }
 
   public create(
