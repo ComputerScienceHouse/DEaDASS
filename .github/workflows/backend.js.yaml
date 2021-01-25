@@ -5,11 +5,11 @@ name: Node CI for the backend
 
 on:
   push:
-    branches: [develop, master]
-    paths: ['backend/**']
+    branches: [ develop, master ]
+    paths: [ 'yarn.lock', 'backend/**', '.github/workflows/backend.js.yaml' ]
   pull_request:
-    branches: [develop, master]
-    paths: ['backend/**']
+    branches: [ develop, master ]
+    paths: [ 'yarn.lock', 'backend/**', '.github/workflows/backend.js.yaml' ]
 
 jobs:
   test:
@@ -17,11 +17,26 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 15.x]
-        yarn-workspace: ['@csh/deadass-backend']
+        node-version: [ 14.x, 15.x ]
+        yarn-workspace: [ '@csh/deadass-backend' ]
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Cache words.txt
+        id: cache-words
+        uses: actions/cache@v2.1.3
+        with:
+          path: "backend/words.txt"
+          key: "always"
+
+      - name: Create words.txt
+        run: >
+          sudo apt-get update
+          && sudo apt-get -y install --no-install-recommends wamerican
+          && cat /usr/share/dict/words | grep -v "'" | awk '{ if (length($0) > 2) print tolower($0)}' | grep -Pv '[^\x00-\x7F]' | uniq > backend/words.txt
+        if: steps.cache-words.outputs.cache-hit != 'true'
+
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
