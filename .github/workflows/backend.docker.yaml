@@ -1,0 +1,19 @@
+name: Backend Docker Build
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'backend/**', 'backend.Dockerfile', '.dockerignore', 'yarn.lock', 'package.json' ]
+  pull_request:
+    branches: [ master ]
+    paths: [ 'backend/**', 'backend.Dockerfile', '.dockerignore', 'yarn.lock', 'package.json' ]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --file backend.Dockerfile --tag deadass-backend:$(date +%s)

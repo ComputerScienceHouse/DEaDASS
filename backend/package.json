@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node dist/bundle.js",
     "build": "webpack",
+    "build:production": "webpack --mode=production",
     "lint": "eslint '*/**/*.{ts,tsx}'",
     "lint:fix": "eslint '*/**/*.{ts,tsx}' --fix",
     "test": "jest"
