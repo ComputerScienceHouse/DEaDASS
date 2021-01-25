@@ -49,7 +49,7 @@ services:
       - mongo-data:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongo
-      MONGO_INITDB_ROOT_USERNAME: mysecretpassword
+      MONGO_INITDB_ROOT_PASSWORD: mysecretpassword
     networks:
       - db-net
 
