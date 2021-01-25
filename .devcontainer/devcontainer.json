@@ -57,14 +57,15 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"GitHub.vscode-pull-request-github",
-    "ms-vscode.vscode-typescript-next",
-    "gamunu.vscode-yarn",
-    "ms-azuretools.vscode-docker",
+		"ms-vscode.vscode-typescript-next",
+		"gamunu.vscode-yarn",
+		"ms-azuretools.vscode-docker",
 		"mtxr.sqltools",
 		"mtxr.sqltools-driver-pg",
-    "mtxr.sqltools-driver-mysql",
-    "mongodb.mongodb-vscode",
-    "orta.vscode-jest"
+		"mtxr.sqltools-driver-mysql",
+		"mongodb.mongodb-vscode",
+		"orta.vscode-jest",
+		"dbaeumer.vscode-eslint"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
