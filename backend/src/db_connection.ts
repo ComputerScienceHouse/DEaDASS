@@ -6,6 +6,12 @@ interface DBConnection {
   init(): Promise<void>;
 
   /**
+   * Get a list of all the databases
+   * @returns A promise resolving to a list of all dbs
+   */
+  list_dbs(): Promise<string[]>;
+
+  /**
    * Create a new database, using the db_name to create a new user
    * @param db_name  The name of the db to create
    * @param password  The password to create the new user with

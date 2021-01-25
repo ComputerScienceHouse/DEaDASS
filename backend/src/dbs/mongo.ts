@@ -16,6 +16,16 @@ class Mongo implements DBConnection {
     await this.client.connect();
   }
 
+  public list_dbs(): Promise<string[]> {
+    return this.client
+      .db("admin")
+      .admin()
+      .listDatabases()
+      .then((response: { databases: Array<{ name: string }> }) =>
+        response.databases.map((db: { name: string }) => db.name)
+      );
+  }
+
   public create(
     db_name: string,
     username: string,
@@ -23,16 +33,9 @@ class Mongo implements DBConnection {
   ): Promise<void> {
     // Check if the db is already in use
     return (
-      this.client
-        .db("admin")
-        .admin()
-        .listDatabases()
-        .then((response: { databases: Array<{ name: string }> }) => {
-          if (
-            response.databases
-              .map((db: { name: string }) => db.name)
-              .includes(db_name)
-          ) {
+      this.list_dbs()
+        .then((names: string[]) => {
+          if (names.includes(db_name)) {
             throw `db {db_name} already exists`;
           }
         })
