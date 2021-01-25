@@ -2,7 +2,6 @@
 	"name": "DEaDASS Codespace (with db containers)",
 	"dockerComposeFile": "docker-compose.yaml",
 	"service": "app",
-  "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind" ],
 
 	"settings": {
 		"sqltools.connections": [{
