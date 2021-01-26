@@ -112,15 +112,17 @@ export type DBRole = {
   db: string;
 };
 
+export type DatabaseType = "mongo";
+
 export type DBUser = {
-  type: string;
+  type: DatabaseType;
   user: string;
   roles: DBRole[];
   extra_data: unknown;
 };
 
 export type Database = {
-  type: string;
+  type: DatabaseType;
   name: string;
   users: DBUser[];
 };
