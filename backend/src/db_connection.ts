@@ -59,6 +59,20 @@ export interface DBConnection {
   delete(db_name: string): Promise<void>;
 
   /**
+   * Update an existing user
+   * @param username user to update
+   * @param db database the user is stored in
+   * @param password (optional) new password to set
+   * @param roles (optional) new roles to set
+   */
+  update_user(
+    username: string,
+    db: string,
+    password?: string,
+    roles?: Array<{ db: string; role: string }>
+  ): Promise<DBUser>;
+
+  /**
    * Reset a user's password
    * @param db_name  The database for which to reset the password
    * @param username  The user who's password is to be reset
@@ -68,7 +82,7 @@ export interface DBConnection {
     db_name: string,
     username: string,
     password: string
-  ): Promise<void>;
+  ): Promise<DBUser>;
 
   /**
    * Close the database connection and deallocate resources

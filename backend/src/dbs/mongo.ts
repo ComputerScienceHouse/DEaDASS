@@ -197,25 +197,28 @@ class Mongo implements DBConnection {
     );
   }
 
+  public update_user(
+    username: string,
+    db: string,
+    password?: string,
+    // TODO customData?: string,
+    roles?: Array<{ db: string; role: string }>
+  ): Promise<MongoDBUser> {
+    const command: { [k: string]: unknown } = { updateUser: username };
+    if (password) command.pwd = password;
+    if (roles) command.roles = roles;
+    return this.client
+      .db(db)
+      .command(command)
+      .then(() => this.get_user(username, db));
+  }
+
   public set_password(
     db_name: string,
     username: string,
     password: string
-  ): Promise<void> {
-    return (
-      this.client
-        .db(db_name)
-        .command({ updateUser: username, pwd: password })
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        .then(() => {})
-        .catch((error) => {
-          console.error(
-            `Error setting password for ${username} in mongo db ${db_name}`
-          );
-          console.error(error);
-          throw error;
-        })
-    );
+  ): Promise<MongoDBUser> {
+    return this.update_user(username, db_name, password);
   }
 
   public async close(): Promise<void> {
