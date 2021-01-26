@@ -13,9 +13,10 @@ export interface DBConnection {
 
   /**
    * Get a list of all users
-   * @returns A promise
+   * @param db_name (optional) get only the with access to the given database
+   * @returns the list of users
    */
-  list_users(): Promise<DBUser[]>;
+  list_users(db_name?: string): Promise<DBUser[]>;
 
   /**
    * Create a new user account for a person
@@ -27,7 +28,7 @@ export interface DBConnection {
     username: string,
     password: string,
     roles: Array<{ db: string; role: string }>
-  ): Promise<void>;
+  ): Promise<DBUser>;
 
   /**
    * Create a new account for a service
@@ -42,7 +43,7 @@ export interface DBConnection {
     password: string,
     roles: Array<{ db: string; role: string }>,
     db: string
-  ): Promise<void>;
+  ): Promise<DBUser>;
 
   /**
    * Create a new database, using the db_name to create a new user
@@ -76,6 +77,8 @@ export interface DBConnection {
 }
 
 export type DBUser = {
+  type: string;
   user: string;
   roles: Array<{ role: string; db: string }>;
+  extra_data: unknown;
 };

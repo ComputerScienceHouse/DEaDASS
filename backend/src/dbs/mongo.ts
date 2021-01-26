@@ -9,6 +9,19 @@ interface SystemUsersSchema {
   customData: unknown;
 }
 
+interface MongoDBUser extends DBUser {
+  extra_data: { db: string };
+}
+
+function mongo_user_to_dbuser(mongo_user: SystemUsersSchema): MongoDBUser {
+  return {
+    type: "mongo",
+    user: mongo_user.user,
+    roles: mongo_user.roles,
+    extra_data: { db: mongo_user.db },
+  };
+}
+
 class Mongo implements DBConnection {
   private readonly client: MongoClient;
 
@@ -34,17 +47,12 @@ class Mongo implements DBConnection {
       );
   }
 
-  public list_users(): Promise<DBUser[]> {
+  public list_users(db_name?: string): Promise<MongoDBUser[]> {
     return this.client
       .db("admin")
       .collection("system.users")
-      .find()
-      .map((document: SystemUsersSchema) => {
-        return {
-          user: document.user,
-          roles: document.roles,
-        };
-      })
+      .find(db_name ? { "roles.db": db_name } : {})
+      .map(mongo_user_to_dbuser)
       .toArray();
   }
 
@@ -74,27 +82,25 @@ class Mongo implements DBConnection {
    * @param password the user password
    * @param roles the user roles
    * @param db_name the database to create the user in
+   * @returns the freshly created user
    */
   private create_user(
     username: string,
     password: string,
     roles: Array<{ db: string; role: string }>,
     db_name: string
-  ): Promise<void> {
+  ): Promise<MongoDBUser> {
     return this.does_user_exist(username, db_name).then((user_exists) => {
       if (roles.length == 0) {
         return Promise.reject("Creating a user without roles is disallowed");
       }
       if (!user_exists) {
-        return (
-          this.client
-            .db(db_name)
-            .addUser(username, password, {
-              roles: roles,
-            })
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            .then(() => {})
-        );
+        return this.client
+          .db(db_name)
+          .addUser(username, password, {
+            roles: roles,
+          })
+          .then(() => this.get_user(username, db_name));
       } else throw "User already exists";
     });
   }
@@ -103,7 +109,7 @@ class Mongo implements DBConnection {
     username: string,
     password: string,
     roles: Array<{ db: string; role: string }>
-  ): Promise<void> {
+  ): Promise<MongoDBUser> {
     return this.create_user(username, password, roles, "admin");
   }
 
@@ -112,8 +118,34 @@ class Mongo implements DBConnection {
     password: string,
     roles: Array<{ db: string; role: string }>,
     db: string
-  ): Promise<void> {
+  ): Promise<MongoDBUser> {
     return this.create_user(username, password, roles, db);
+  }
+
+  /**
+   * // TODO user data storage considerations
+   * The schema I'm considering would separate csher's from services by
+   * keeping users in admin, and services in the service db. This would
+   * allow DEaDASS to figure out who has access to what from the mongo db
+   * itself, and then all that needs to be stored elsewhere would be
+   * pending accounts. I think I can tie custom data to users, and store
+   * arbitrary things. It remains to be seen if the same is true for mysql
+   * and postgres. It may be necessary to keep a DEaDASS db of all this
+   * information, depending on how convenient those systems are. Also,
+   * migration will take some effort.
+   */
+  public get_user(username: string, db: string): Promise<MongoDBUser> {
+    return this.client
+      .db("admin")
+      .collection("system.users")
+      .find({ user: username, db: db })
+      .map(mongo_user_to_dbuser)
+      .toArray()
+      .then((users: MongoDBUser[]) => {
+        if (users.length > 1) throw `Multiple users ${db}.${username}`;
+        if (users.length == 0) throw `No user found`;
+        return users[0];
+      });
   }
 
   public create(
