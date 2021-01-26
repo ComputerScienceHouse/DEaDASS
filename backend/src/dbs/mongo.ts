@@ -167,7 +167,7 @@ class Mongo implements DBConnection {
     db_name: string,
     username: string,
     password: string
-  ): Promise<void> {
+  ): Promise<Database> {
     // Check if the db is already in use
     return (
       this.list_dbs()
@@ -189,6 +189,7 @@ class Mongo implements DBConnection {
             throw error;
           });
         })
+        .then(() => this.get_db(db_name))
         .catch((error) => {
           console.error(error);
           throw error;

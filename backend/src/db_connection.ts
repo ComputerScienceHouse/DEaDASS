@@ -60,7 +60,11 @@ export interface DBConnection {
    * @param db_name  The name of the db to create
    * @param password  The password to create the new user with
    */
-  create_db(db_name: string, username: string, password: string): Promise<void>;
+  create_db(
+    db_name: string,
+    username: string,
+    password: string
+  ): Promise<Database>;
 
   /**
    * Delete a specific user

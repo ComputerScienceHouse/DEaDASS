@@ -29,6 +29,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  if (req.accepts("json")) {
+    next();
+  } else {
+    const error = new Error(
+      `Not Acceptable: This server only supports json responses.`
+    );
+    res.status(406);
+    next(error);
+  }
+});
+
 app.get("/health", (_, res) => {
   const response = {
     database: {
@@ -39,6 +51,64 @@ app.get("/health", (_, res) => {
   };
   const status = response.database.mongo.isConnected ? 200 : 500;
   res.status(status).json(response);
+});
+
+// TODO app.get("/databases")
+
+type PostDatabasesBody = { type: string; name: string; username: string };
+app.post("/databases", (req, res, next) => {
+  const { type, name, username } = <PostDatabasesBody>req.body;
+  const password: string = generator.genPassword();
+  switch (type) {
+    case "mongo":
+      mongo
+        .create_db(name, username, password)
+        .then((db) =>
+          res.status(201).json({
+            user: { username: username, password: password },
+            db: db,
+          })
+        )
+        .catch(next);
+      break;
+  }
+});
+
+app.get("/databases/:type", (req, res, next) => {
+  const { type } = req.params;
+  switch (type) {
+    case "mongo":
+      mongo
+        .list_dbs()
+        .then((dbs) => Promise.all(dbs.map((db) => mongo.get_db(db))))
+        .then((dbs) => res.json(dbs))
+        .catch(next);
+      break;
+  }
+});
+
+app.get("/databases/:type/:name", (req, res, next) => {
+  const { type, name } = req.params;
+  switch (type) {
+    case "mongo":
+      mongo
+        .get_db(name)
+        .then((db) => res.json(db))
+        .catch(next);
+      break;
+  }
+});
+
+app.delete("/databases/:type/:name", (req, res, next) => {
+  const { type, name } = req.params;
+  switch (type) {
+    case "mongo":
+      mongo
+        .delete_db(name)
+        .then(() => res.status(204).json())
+        .catch(next);
+      break;
+  }
 });
 
 const test_mail = false;
