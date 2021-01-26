@@ -1,4 +1,4 @@
-import type { DBConnection, DBUser } from "../db_connection";
+import type { Database, DBConnection, DBUser } from "../db_connection";
 import { MongoClient } from "mongodb";
 
 interface SystemUsersSchema {
@@ -45,6 +45,14 @@ class Mongo implements DBConnection {
       .then((response: { databases: Array<{ name: string }> }) =>
         response.databases.map((db: { name: string }) => db.name)
       );
+  }
+
+  public async get_db(db_name: string): Promise<Database> {
+    return {
+      type: "mongo",
+      name: db_name,
+      users: await this.list_users(db_name),
+    };
   }
 
   public list_users(db_name?: string): Promise<MongoDBUser[]> {

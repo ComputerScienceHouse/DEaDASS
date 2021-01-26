@@ -12,6 +12,11 @@ export interface DBConnection {
   list_dbs(): Promise<string[]>;
 
   /**
+   * Get details for a specific database
+   */
+  get_db(db_name: string): Promise<Database>;
+
+  /**
    * Get a list of all users
    * @param db_name (optional) get only the with access to the given database
    * @returns the list of users
@@ -95,4 +100,10 @@ export type DBUser = {
   user: string;
   roles: Array<{ role: string; db: string }>;
   extra_data: unknown;
+};
+
+export type Database = {
+  type: string;
+  name: string;
+  users: DBUser[];
 };
