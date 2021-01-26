@@ -15,10 +15,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "express": "^4.17.1",
     "mongodb": "^3.6.3",
     "nodemailer": "^6.4.11"
   },
   "devDependencies": {
+    "@types/express": "^4.17.11",
     "@types/jest": "^26.0.20",
     "@types/mongodb": "^3.6.3",
     "@types/node": "^14.6.0",

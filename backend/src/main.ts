@@ -2,6 +2,7 @@ import Mongo from "./dbs/mongo";
 import { DBConnection } from "./db_connection";
 import Mailer = require("./mail");
 import PasswordGenerator = require("./password_generator");
+import express = require("express");
 
 declare let process: {
   env: {
@@ -12,10 +13,33 @@ declare let process: {
     MAIL_PORT: string;
     UI_HOST: string;
     MONGO_CONNECT_STRING: string;
+    PORT: number;
   };
 };
 
+const mongo: DBConnection = new Mongo(process.env.MONGO_CONNECT_STRING);
+mongo.init().catch(console.error);
+
 const generator: PasswordGenerator = new PasswordGenerator("./words.txt");
+
+// Create Express app
+const app = express();
+
+// Configure body parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get("/health", (_, res) => {
+  const response = {
+    database: {
+      mongo: {
+        isConnected: mongo.is_connected(),
+      },
+    },
+  };
+  const status = response.database.mongo.isConnected ? 200 : 500;
+  res.status(status).json(response);
+});
 
 const test_mail = false;
 if (test_mail) {
@@ -39,7 +63,6 @@ if (test_mail) {
 
 const test_mongo = false;
 if (test_mongo) {
-  const mongo: DBConnection = new Mongo(process.env.MONGO_CONNECT_STRING);
   mongo
     .init()
     .then(() => mongo.create_db("bar", "bar", generator.genPassword()))
@@ -48,3 +71,5 @@ if (test_mongo) {
     .then(() => mongo.close())
     .catch(console.error);
 }
+
+app.listen(process.env.PORT || 8080);

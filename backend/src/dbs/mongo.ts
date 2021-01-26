@@ -40,6 +40,10 @@ class Mongo implements DBConnection {
     await this.client.connect();
   }
 
+  public is_connected(): boolean {
+    return this.client.isConnected();
+  }
+
   public list_dbs(): Promise<string[]> {
     return this.client
       .db("admin")

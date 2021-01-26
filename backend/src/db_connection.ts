@@ -6,6 +6,11 @@ export interface DBConnection {
   init(): Promise<void>;
 
   /**
+   * Check if the db is connected
+   */
+  is_connected(): boolean;
+
+  /**
    * Get a list of all the databases
    * @returns A promise resolving to a list of all dbs
    */
