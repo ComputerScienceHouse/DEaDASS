@@ -159,7 +159,7 @@ class Mongo implements DBConnection {
       });
   }
 
-  public create(
+  public create_db(
     db_name: string,
     username: string,
     password: string
@@ -196,7 +196,7 @@ class Mongo implements DBConnection {
     return this.client.db(db).removeUser(username).then(void_promise);
   }
 
-  public delete(db_name: string): Promise<void> {
+  public delete_db(db_name: string): Promise<void> {
     return this.client
       .db(db_name)
       .command({ dropAllUsersFromDatabase: 1 })

@@ -55,7 +55,7 @@ export interface DBConnection {
    * @param db_name  The name of the db to create
    * @param password  The password to create the new user with
    */
-  create(db_name: string, username: string, password: string): Promise<void>;
+  create_db(db_name: string, username: string, password: string): Promise<void>;
 
   /**
    * Delete a specific user
@@ -68,7 +68,7 @@ export interface DBConnection {
    * Delete a database
    * @param db_name  The database to be deleted
    */
-  delete(db_name: string): Promise<void>;
+  delete_db(db_name: string): Promise<void>;
 
   /**
    * Update an existing user

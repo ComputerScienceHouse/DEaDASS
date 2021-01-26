@@ -42,9 +42,9 @@ if (test_mongo) {
   const mongo: DBConnection = new Mongo(process.env.MONGO_CONNECT_STRING);
   mongo
     .init()
-    .then(() => mongo.create("bar", "bar", generator.genPassword()))
+    .then(() => mongo.create_db("bar", "bar", generator.genPassword()))
     .then(() => mongo.set_password("bar", "bar", generator.genPassword()))
-    .then(() => mongo.delete("bar"))
+    .then(() => mongo.delete_db("bar"))
     .then(() => mongo.close())
     .catch(console.error);
 }
