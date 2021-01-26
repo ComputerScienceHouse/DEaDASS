@@ -1,4 +1,4 @@
-import type { Database, DBConnection, DBUser } from "../db_connection";
+import type { Database, DBConnection, DBRole, DBUser } from "../db_connection";
 import { MongoClient } from "mongodb";
 
 interface SystemUsersSchema {
@@ -9,7 +9,7 @@ interface SystemUsersSchema {
   customData: unknown;
 }
 
-interface MongoDBUser extends DBUser {
+export interface MongoDBUser extends DBUser {
   extra_data: { db: string };
 }
 
@@ -21,6 +21,9 @@ function mongo_user_to_dbuser(mongo_user: SystemUsersSchema): MongoDBUser {
     extra_data: { db: mongo_user.db },
   };
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function void_promise(): void {}
 
 class Mongo implements DBConnection {
   private readonly client: MongoClient;
@@ -189,20 +192,35 @@ class Mongo implements DBConnection {
     );
   }
 
+  public delete_user(username: string, db: string): Promise<void> {
+    return this.client.db(db).removeUser(username).then(void_promise);
+  }
+
   public delete(db_name: string): Promise<void> {
-    return (
-      this.client
-        .db(db_name)
-        .command({ dropAllUsersFromDatabase: 1 })
-        .then(() => this.client.db(db_name).dropDatabase())
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        .then(() => {})
-        .catch((error) => {
-          console.error("Error deleting mongo db " + db_name);
-          console.error(error);
-          throw error;
-        })
-    );
+    return this.client
+      .db(db_name)
+      .command({ dropAllUsersFromDatabase: 1 })
+      .then(() => this.list_users(db_name))
+      .then((users) =>
+        // Remove roles from all users with access to this db
+        Promise.all(
+          users.map((user) =>
+            this.update_user(
+              user.user,
+              user.extra_data.db,
+              undefined,
+              user.roles.filter((value: DBRole) => value.db !== db_name)
+            )
+          )
+        )
+      )
+      .then(() => this.client.db(db_name).dropDatabase())
+      .then(void_promise)
+      .catch((error) => {
+        console.error("Error deleting mongo db " + db_name);
+        console.error(error);
+        throw error;
+      });
   }
 
   public update_user(

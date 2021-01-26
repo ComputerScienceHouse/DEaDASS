@@ -58,6 +58,13 @@ export interface DBConnection {
   create(db_name: string, username: string, password: string): Promise<void>;
 
   /**
+   * Delete a specific user
+   * @param username user to delete
+   * @param db database the user is stored in
+   */
+  delete_user(username: string, db: string): Promise<void>;
+
+  /**
    * Delete a database
    * @param db_name  The database to be deleted
    */
@@ -95,10 +102,15 @@ export interface DBConnection {
   close(): Promise<void>;
 }
 
+export type DBRole = {
+  role: string;
+  db: string;
+};
+
 export type DBUser = {
   type: string;
   user: string;
-  roles: Array<{ role: string; db: string }>;
+  roles: DBRole[];
   extra_data: unknown;
 };
 
