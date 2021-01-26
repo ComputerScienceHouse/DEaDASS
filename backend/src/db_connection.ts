@@ -18,6 +18,33 @@ export interface DBConnection {
   list_users(): Promise<DBUser[]>;
 
   /**
+   * Create a new user account for a person
+   * @param username The csh username of the user
+   * @param password The account password
+   * @param roles The roles to grant the account initially
+   */
+  create_user_account(
+    username: string,
+    password: string,
+    roles: Array<{ db: string; role: string }>
+  ): Promise<void>;
+
+  /**
+   * Create a new account for a service
+   * @param username The username for the service (generally the service name)
+   * @param password The account password
+   * @param roles The roles to grant the account initially
+   * @param db The database to create the account against
+   * // TODO this ^ concept likely won't work for SQL, and will need to be reworked to store metadata somewhere
+   */
+  create_service_account(
+    username: string,
+    password: string,
+    roles: Array<{ db: string; role: string }>,
+    db: string
+  ): Promise<void>;
+
+  /**
    * Create a new database, using the db_name to create a new user
    * @param db_name  The name of the db to create
    * @param password  The password to create the new user with

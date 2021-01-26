@@ -48,6 +48,74 @@ class Mongo implements DBConnection {
       .toArray();
   }
 
+  /**
+   * Test if a user already exists
+   * @param username
+   * @param db the db to check against (generally 'admin' for people and a specific DB for service accounts)
+   * @returns true if there's an existing user
+   */
+  private does_user_exist(username: string, db: string): Promise<boolean> {
+    return this.client
+      .db("admin")
+      .collection("system.users")
+      .findOne({ user: username, db: db })
+      .then((result) => {
+        if (result) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+  }
+
+  /**
+   * Create a user
+   * @param username the account username
+   * @param password the user password
+   * @param roles the user roles
+   * @param db_name the database to create the user in
+   */
+  private create_user(
+    username: string,
+    password: string,
+    roles: Array<{ db: string; role: string }>,
+    db_name: string
+  ): Promise<void> {
+    return this.does_user_exist(username, db_name).then((user_exists) => {
+      if (roles.length == 0) {
+        return Promise.reject("Creating a user without roles is disallowed");
+      }
+      if (!user_exists) {
+        return (
+          this.client
+            .db(db_name)
+            .addUser(username, password, {
+              roles: roles,
+            })
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            .then(() => {})
+        );
+      } else throw "User already exists";
+    });
+  }
+
+  public create_user_account(
+    username: string,
+    password: string,
+    roles: Array<{ db: string; role: string }>
+  ): Promise<void> {
+    return this.create_user(username, password, roles, "admin");
+  }
+
+  public create_service_account(
+    username: string,
+    password: string,
+    roles: Array<{ db: string; role: string }>,
+    db: string
+  ): Promise<void> {
+    return this.create_user(username, password, roles, db);
+  }
+
   public create(
     db_name: string,
     username: string,
@@ -58,20 +126,21 @@ class Mongo implements DBConnection {
       this.list_dbs()
         .then((names: string[]) => {
           if (names.includes(db_name)) {
-            throw `db {db_name} already exists`;
+            throw `db ${db_name} already exists`;
           }
         })
         // If it's not in use, we can create it
         .then(() => {
-          this.client
-            .db(db_name)
-            .addUser(username, password, {
-              roles: [{ role: "dbOwner", db: db_name }],
-            })
-            .catch((error) => {
-              console.error("Error creating new mongo user for db " + db_name);
-              throw error;
-            });
+          // TODO refactor user creation, need to add roles to existing users and/or create user accounts. Do in higher level function?
+          this.create_service_account(
+            username,
+            password,
+            [{ role: "dbOwner", db: db_name }],
+            db_name
+          ).catch((error) => {
+            console.error("Error creating new mongo user for db " + db_name);
+            throw error;
+          });
         })
         .catch((error) => {
           console.error(error);
@@ -109,7 +178,7 @@ class Mongo implements DBConnection {
         .then(() => {})
         .catch((error) => {
           console.error(
-            `Error setting password for {username} in mongo db {db_name}`
+            `Error setting password for ${username} in mongo db ${db_name}`
           );
           console.error(error);
           throw error;
