@@ -9,10 +9,12 @@
   "scripts": {
     "start": "node dist/bundle.js",
     "build": "webpack",
+    "build:watch": "webpack --watch",
     "build:production": "webpack --mode=production",
     "lint": "eslint '*/**/*.{ts,tsx}'",
     "lint:fix": "eslint '*/**/*.{ts,tsx}' --fix",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "express": "^4.17.1",

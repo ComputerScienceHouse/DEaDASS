@@ -1,6 +1,6 @@
 import Mongo from "./dbs/mongo";
 import { DBConnection } from "./db_connection";
-import Mailer = require("./mail");
+import Mailer from "./mail";
 import PasswordGenerator = require("./password_generator");
 import express = require("express");
 

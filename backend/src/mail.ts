@@ -87,7 +87,7 @@ class Mailer {
   public approve(uid: string, db_name: string): Promise<void> {
     const body: string =
       `Your database ${db_name} has been created.<br/>` +
-      `Please <a href=i${this.ui_host}>login to DEaDASS</a> to reset the ` +
+      `Please <a href=${this.ui_host}>login to DEaDASS</a> to reset the ` +
       `password and obtain your access credentials.<br/><br/>- DEaDASS`;
     return this.send(
       `${uid}@csh.rit.edu`,
@@ -112,4 +112,4 @@ class Mailer {
   }
 }
 
-export = Mailer;
+export default Mailer;
