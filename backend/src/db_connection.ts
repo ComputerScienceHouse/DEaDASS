@@ -1,4 +1,6 @@
 export interface DBConnection {
+  readonly type: DatabaseType;
+
   /**
    * Initialise the database conection
    * @returns A promise. When resolved, the database connection will be valid
@@ -33,6 +35,7 @@ export interface DBConnection {
    * @param username The csh username of the user
    * @param password The account password
    * @param roles The roles to grant the account initially
+   * @return the created user
    */
   create_user_account(
     username: string,
@@ -47,6 +50,7 @@ export interface DBConnection {
    * @param roles The roles to grant the account initially
    * @param db The database to create the account against
    * // TODO this ^ concept likely won't work for SQL, and will need to be reworked to store metadata somewhere
+   * @return the created user
    */
   create_service_account(
     username: string,
@@ -56,15 +60,17 @@ export interface DBConnection {
   ): Promise<DBUser>;
 
   /**
-   * Create a new database, using the db_name to create a new user
+   * Create a new database and service account
    * @param db_name  The name of the db to create
+   * @param username the name of the service account to create
    * @param password  The password to create the new user with
+   * @returns the new database and user
    */
   create_db(
     db_name: string,
     username: string,
     password: string
-  ): Promise<Database>;
+  ): Promise<{ db: Database; user: DBUser }>;
 
   /**
    * Delete a specific user

@@ -26,6 +26,7 @@ function mongo_user_to_dbuser(mongo_user: SystemUsersSchema): MongoDBUser {
 function void_promise(): void {}
 
 class Mongo implements DBConnection {
+  public readonly type: "mongo" = "mongo";
   private readonly client: MongoClient;
 
   /**
@@ -167,8 +168,9 @@ class Mongo implements DBConnection {
     db_name: string,
     username: string,
     password: string
-  ): Promise<Database> {
+  ): Promise<{ db: Database; user: DBUser }> {
     // Check if the db is already in use
+    // TODO for mongo this includes if any users have write access to the database
     return (
       this.list_dbs()
         .then((names: string[]) => {
@@ -177,22 +179,26 @@ class Mongo implements DBConnection {
           }
         })
         // If it's not in use, we can create it
-        .then(() => {
-          // TODO refactor user creation, need to add roles to existing users and/or create user accounts. Do in higher level function?
-          this.create_service_account(
-            username,
-            password,
-            [{ role: "dbOwner", db: db_name }],
-            db_name
-          ).catch((error) => {
-            console.error("Error creating new mongo user for db " + db_name);
-            throw error;
-          });
-        })
-        .then(() => this.get_db(db_name))
-        .catch((error) => {
-          console.error(error);
-          throw error;
+        .then(
+          // TODO refactor user creation, need to add roles to existing users
+          // and/or create user accounts. Do in higher level function?
+          () =>
+            this.create_service_account(
+              username,
+              password,
+              [{ role: "dbOwner", db: db_name }],
+              db_name
+            )
+        )
+        .then(
+          (user: DBUser): Promise<[Database, DBUser]> =>
+            Promise.all([
+              this.get_db(db_name),
+              new Promise<DBUser>((resolve) => resolve(user)),
+            ])
+        )
+        .then(([db, user]) => {
+          return { db: db, user: user };
         })
     );
   }
