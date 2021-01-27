@@ -46,20 +46,17 @@ export class DBWrangler {
    * Get a list of all the databases
    */
   // public list_dbs(): Promise<Array<{ type: DatabaseType; dbs: string[] }>>;
-  public list_dbs(): Promise<Record<DatabaseType, string[]>>;
+  public list_dbs(): Promise<Database[]>;
   /**
    * Get a list of databases
    * @param type get only databases of the specific type
    */
-  public list_dbs(type: DatabaseType): Promise<string[]>;
-  public async list_dbs(
-    type?: DatabaseType
-  ): Promise<Record<DatabaseType, string[]> | string[]> {
+  public list_dbs(type: DatabaseType): Promise<Database[]>;
+  public list_dbs(type?: DatabaseType): Promise<Database[]> {
     if (type) return this.pick_db(type).list_dbs();
-
-    return {
-      mongo: await this.pick_db("mongo").list_dbs(),
-    };
+    return Promise.all(this.conns.map((conn) => conn.list_dbs())).then((dbs) =>
+      dbs.flat()
+    );
   }
 
   /**

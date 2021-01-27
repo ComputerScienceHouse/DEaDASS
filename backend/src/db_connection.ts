@@ -16,7 +16,7 @@ export interface DBConnection {
    * Get a list of all the databases
    * @returns A promise resolving to a list of all dbs
    */
-  list_dbs(): Promise<string[]>;
+  list_dbs(): Promise<Database[]>;
 
   /**
    * Get details for a specific database
