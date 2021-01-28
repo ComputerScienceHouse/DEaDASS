@@ -1,0 +1,17 @@
+{
+  "node_env": "development",
+  "mail": {
+    "host": "mail",
+    "user": "deadass",
+    "password": "mysecretpassword"
+  },
+  "ui_host": "ui",
+  "db_servers": [
+    {
+      "name": "mongo",
+      "type": "mongo",
+      "auth": "mongodb://mongo:mysecretpassword@mongo:27017"
+    }
+  ],
+  "port": 8080
+}

@@ -1,5 +1,10 @@
-import Mongo from "./dbs/mongo";
-import { Database, DatabaseType, DBConnection, DBUser } from "./db_connection";
+import Mongo, { MongoConfigStanza } from "./dbs/mongo";
+import { Database, DBConnection, DBUser } from "./db_connection";
+
+export interface DBServerConfigStanza {
+  type: string;
+  name: string;
+}
 
 class MapWithMap<K, V> extends Map<K, V> {
   // eslint is disagreeing with prettier here, so we need the disable
@@ -16,12 +21,19 @@ export class DBWrangler {
     string,
     DBConnection
   >();
-  /**
-   *
-   * @param mongo mongodb connection to use
-   */
-  public constructor(mongo: Mongo) {
-    this.conns.set(mongo.name, mongo);
+
+  public constructor(config_stanza: DBServerConfigStanza[]) {
+    config_stanza.forEach((dbstanza) => {
+      switch (dbstanza.type) {
+        case "mongo":
+          this.conns.set(dbstanza.name, new Mongo(<MongoConfigStanza>dbstanza));
+          break;
+        default:
+          console.error(
+            `Unrecongised db config for '${dbstanza.name}' of type '${dbstanza.type}'`
+          );
+      }
+    });
   }
 
   /**

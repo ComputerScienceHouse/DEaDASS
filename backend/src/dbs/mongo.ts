@@ -1,5 +1,6 @@
 import type { Database, DBConnection, DBRole, DBUser } from "../db_connection";
 import { MongoClient } from "mongodb";
+import { DBServerConfigStanza } from "../db_wrangler";
 
 interface SystemUsersSchema {
   _id: unknown;
@@ -13,23 +14,25 @@ export interface MongoDBUser extends DBUser {
   extra_data: { db: string };
 }
 
+export interface MongoConfigStanza extends DBServerConfigStanza {
+  type: "mongo";
+  auth: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function void_promise(): void {}
 
 class Mongo implements DBConnection {
+  public readonly server: string;
   public readonly type: "mongo" = "mongo";
   private readonly client: MongoClient;
 
   /**
    * Instantiates a connection to the database
-   * @param name name/alias of the server
-   * @param connection_string Mongodb connection string
    */
-  public constructor(
-    public readonly server: string,
-    connection_string: string
-  ) {
-    this.client = new MongoClient(connection_string);
+  public constructor(config: MongoConfigStanza) {
+    this.server = config.name;
+    this.client = new MongoClient(config.auth);
   }
 
   private mongo_user_to_dbuser(mongo_user: SystemUsersSchema): MongoDBUser {

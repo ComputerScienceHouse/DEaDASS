@@ -1,9 +1,16 @@
 import { mocked } from "ts-jest/utils";
 import nodemailer = require("nodemailer");
 import Mail = require("nodemailer/lib/mailer");
-// import SMTPTransport = require("nodemailer/lib/smtp-transport");
 
-import Mailer from "./mail";
+import Mailer, { MailConfigStanza } from "./mail";
+
+const mail_config: MailConfigStanza = {
+  host: "mail.example.com",
+  auth: { user: "user", pass: "pass" },
+  port: undefined,
+  admin_address: "admin@example.com",
+  ui_host: "ui",
+};
 
 jest.mock("nodemailer");
 
@@ -21,15 +28,14 @@ describe("when the mailer constructed with", () => {
     port?: number,
     is_secure = false
   ): jest.EmptyFunction => (): void => {
-    new Mailer("host", "user", "password", port, "ui_host", "admin");
+    const test_config = mail_config;
+    mail_config.port = port;
+    new Mailer(test_config);
     expect(mockedNodemailer.createTransport).toHaveBeenCalledWith({
-      host: "host",
+      host: mail_config.host,
       port: port || 25,
       secure: is_secure,
-      auth: {
-        user: "user",
-        pass: "password",
-      },
+      auth: mail_config.auth,
     });
   };
 
@@ -55,22 +61,10 @@ describe("when the mailer is configured properly it", () => {
   let mailer: Mailer;
   const uid = "uid",
     db = "database",
-    reason = "reason",
-    mail_host = "host",
-    mail_user = "user",
-    password = "password",
-    ui_host = "ui",
-    admin_address = "admin@example.com";
+    reason = "reason";
 
   beforeAll(() => {
-    mailer = new Mailer(
-      mail_host,
-      mail_user,
-      password,
-      undefined,
-      ui_host,
-      admin_address
-    );
+    mailer = new Mailer(mail_config);
     mockSendMail.mockClear();
   });
 
@@ -80,7 +74,7 @@ describe("when the mailer is configured properly it", () => {
         from: '"DEaDASS" <noreply@csh.rit.edu>',
         to: `${uid}@csh.rit.edu`,
         subject: `Database Creation - ${db}`,
-        html: `Your database ${db} has been created.<br/>Please <a href=${ui_host}>login to DEaDASS</a> to reset the password and obtain your access credentials.<br/><br/>- DEaDASS`,
+        html: `Your database ${db} has been created.<br/>Please <a href=${mail_config.ui_host}>login to DEaDASS</a> to reset the password and obtain your access credentials.<br/><br/>- DEaDASS`,
       });
     }));
 
@@ -98,9 +92,9 @@ describe("when the mailer is configured properly it", () => {
     mailer.request(uid, reason, db).then(() => {
       expect(mockSendMail).toBeCalledWith({
         from: '"DEaDASS" <noreply@csh.rit.edu>',
-        to: admin_address,
+        to: mail_config.admin_address,
         subject: `Database Request - ${uid}:${db}`,
-        html: `${uid} is requesting a database named ${db} because <code>${reason}</code>,<br/><br/><a href=${ui_host}/approvals>Visit the approvals page.</a><br/><br/>- DEaDASS`,
+        html: `${uid} is requesting a database named ${db} because <code>${reason}</code>,<br/><br/><a href=${mail_config.ui_host}/approvals>Visit the approvals page.</a><br/><br/>- DEaDASS`,
       });
     }));
 });

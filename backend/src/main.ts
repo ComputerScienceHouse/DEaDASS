@@ -1,25 +1,18 @@
-import Mongo from "./dbs/mongo";
+import { exit } from "process";
+import { DBWrangler } from "./db_wrangler";
 import Mailer from "./mail";
 import PasswordGenerator = require("./password_generator");
+import get_config, { Config } from "./config";
 import express = require("express");
-import { DBWrangler } from "./db_wrangler";
 
-declare let process: {
-  env: {
-    NODE_ENV: string;
-    MAIL_HOST: string;
-    MAIL_USER: string;
-    MAIL_PASSWORD: string;
-    MAIL_PORT: string;
-    UI_HOST: string;
-    MONGO_CONNECT_STRING: string;
-    PORT: number;
-  };
-};
+let config: Config;
+try {
+  config = get_config();
+} catch {
+  exit();
+}
 
-const wrangler: DBWrangler = new DBWrangler(
-  new Mongo("mongo", process.env.MONGO_CONNECT_STRING)
-);
+const wrangler: DBWrangler = new DBWrangler(config.db_servers);
 wrangler.init().catch(console.error);
 
 const generator: PasswordGenerator = new PasswordGenerator("./words.txt");
@@ -99,16 +92,7 @@ app.delete("/databases/:server/:name", (req, res, next) => {
 
 const test_mail = false;
 if (test_mail) {
-  const port: number | undefined =
-    (process.env["MAIL_PORT"] && +process.env["MAIL_PORT"]) || undefined;
-  const mail: Mailer = new Mailer(
-    process.env.MAIL_HOST,
-    process.env.MAIL_USER,
-    process.env.MAIL_PASSWORD,
-    port,
-    process.env.UI_HOST,
-    "mom@csh.rit.edu"
-  );
+  const mail: Mailer = new Mailer(config.mail);
 
   mail
     .request("mom", "Testing request", "not_a_real_db")

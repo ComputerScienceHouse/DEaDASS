@@ -1,34 +1,38 @@
 import nodemailer = require("nodemailer");
 import Mail = require("nodemailer/lib/mailer");
-import SMTPTransport = require("nodemailer/lib/smtp-transport");
+
+export type MailConfigStanza = {
+  host: string;
+  auth: {
+    user: string;
+    pass: string;
+  };
+  // Defaults to 25. Use 465 for secure
+  port: number | undefined;
+  // administrator mail address for approving requests
+  admin_address: string;
+  // url of the frontend, for links in mail
+  ui_host: string;
+};
 
 class Mailer {
   private readonly transport: Mail;
+  // Frontend url
+  private readonly ui_host: string;
+  // Address of people who can approve requests
+  private readonly admin_address: string;
 
   /**
-   * @param mail_host  The mailserver hostname
-   * @param username  The mail account login
-   * @param password  The mail account password
-   * @param mail_port  (optional) The port to connect to the mailserver over
-   * @param ui_host  The hostname of the frontend site
-   * @param admin_address  The administrator's mail address
+   * @param config the mail config stanza
    */
-  public constructor(
-    mail_host: string,
-    username: string,
-    password: string,
-    mail_port = 25,
-    private readonly ui_host: string,
-    private readonly admin_address: string
-  ) {
+  public constructor(config: MailConfigStanza) {
+    this.admin_address = config.admin_address;
+    this.ui_host = config.ui_host;
     this.transport = nodemailer.createTransport({
-      host: mail_host,
-      port: mail_port,
-      secure: mail_port == 465, // False if not port 465
-      auth: {
-        user: username,
-        pass: password,
-      },
+      host: config.host,
+      port: config.port || 25,
+      secure: config.port == 465, // False if not port 465
+      auth: config.auth,
     });
   }
 
@@ -43,20 +47,12 @@ class Mailer {
     subject: string,
     body: string
   ): Promise<void> {
-    await this.transport
-      .sendMail({
-        from: '"DEaDASS" <noreply@csh.rit.edu>',
-        to: recipient,
-        subject: subject,
-        html: body,
-      })
-      .then((info: SMTPTransport.SentMessageInfo) =>
-        console.log(`Message sent: ${info.messageId}`)
-      )
-      .catch((error) => {
-        console.error(error);
-        throw error;
-      });
+    await this.transport.sendMail({
+      from: '"DEaDASS" <noreply@csh.rit.edu>',
+      to: recipient,
+      subject: subject,
+      html: body,
+    });
   }
 
   /**
