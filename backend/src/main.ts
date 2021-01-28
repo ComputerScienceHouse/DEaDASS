@@ -1,5 +1,4 @@
 import Mongo from "./dbs/mongo";
-import { DatabaseType } from "./db_connection";
 import Mailer from "./mail";
 import PasswordGenerator = require("./password_generator");
 import express = require("express");
@@ -19,7 +18,7 @@ declare let process: {
 };
 
 const wrangler: DBWrangler = new DBWrangler(
-  new Mongo(process.env.MONGO_CONNECT_STRING)
+  new Mongo("mongo", process.env.MONGO_CONNECT_STRING)
 );
 wrangler.init().catch(console.error);
 
@@ -48,7 +47,12 @@ app.get("/health", (_, res) => {
   const response = {
     database: wrangler.is_connected(),
   };
-  const status = response.database.mongo.isConnected ? 200 : 500;
+  // Return 200 iff all servers are connected
+  const status = response.database
+    .map((server) => server.isConnected)
+    .every((b) => b)
+    ? 200
+    : 500;
   res.status(status).json(response);
 });
 
@@ -59,36 +63,36 @@ app.get("/databases", (_, res, next) => {
     .catch(next);
 });
 
-type PostDatabasesBody = { type: DatabaseType; name: string; username: string };
+type PostDatabasesBody = { server: "string"; name: string; username: string };
 app.post("/databases", (req, res, next) => {
-  const { type, name, username } = <PostDatabasesBody>req.body;
+  const { server, name, username } = <PostDatabasesBody>req.body;
   const password: string = generator.genPassword();
   wrangler
-    .create_db(type, name, username, password)
+    .create_db(server, name, username, password)
     .then((resp) => res.status(201).json(resp))
     .catch(next);
 });
 
-app.get("/databases/:type", (req, res, next) => {
-  const { type } = req.params;
+app.get("/databases/:server", (req, res, next) => {
+  const { server } = req.params;
   wrangler
-    .list_dbs(<DatabaseType>type)
+    .list_dbs(server)
     .then((resp) => res.json(resp))
     .catch(next);
 });
 
-app.get("/databases/:type/:name", (req, res, next) => {
-  const { type, name } = req.params;
+app.get("/databases/:server/:name", (req, res, next) => {
+  const { server, name } = req.params;
   wrangler
-    .get_db(<DatabaseType>type, name)
+    .get_db(server, name)
     .then((resp) => res.json(resp))
     .catch(next);
 });
 
-app.delete("/databases/:type/:name", (req, res, next) => {
-  const { type, name } = req.params;
+app.delete("/databases/:server/:name", (req, res, next) => {
+  const { server, name } = req.params;
   wrangler
-    .delete_db(<DatabaseType>type, name)
+    .delete_db(server, name)
     .then((resp) => res.status(204).json(resp))
     .catch(next);
 });

@@ -1,4 +1,5 @@
 export interface DBConnection {
+  readonly server: string;
   readonly type: DatabaseType;
 
   /**
@@ -125,6 +126,7 @@ export type DBRole = {
 export type DatabaseType = "mongo";
 
 export type DBUser = {
+  server: string;
   type: DatabaseType;
   user: string;
   roles: DBRole[];
@@ -132,6 +134,7 @@ export type DBUser = {
 };
 
 export type Database = {
+  server: string;
   type: DatabaseType;
   name: string;
   users: DBUser[];

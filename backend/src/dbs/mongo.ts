@@ -13,15 +13,6 @@ export interface MongoDBUser extends DBUser {
   extra_data: { db: string };
 }
 
-function mongo_user_to_dbuser(mongo_user: SystemUsersSchema): MongoDBUser {
-  return {
-    type: "mongo",
-    user: mongo_user.user,
-    roles: mongo_user.roles,
-    extra_data: { db: mongo_user.db },
-  };
-}
-
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function void_promise(): void {}
 
@@ -31,10 +22,24 @@ class Mongo implements DBConnection {
 
   /**
    * Instantiates a connection to the database
+   * @param name name/alias of the server
    * @param connection_string Mongodb connection string
    */
-  public constructor(connection_string: string) {
+  public constructor(
+    public readonly server: string,
+    connection_string: string
+  ) {
     this.client = new MongoClient(connection_string);
+  }
+
+  private mongo_user_to_dbuser(mongo_user: SystemUsersSchema): MongoDBUser {
+    return {
+      server: this.server,
+      type: "mongo",
+      user: mongo_user.user,
+      roles: mongo_user.roles,
+      extra_data: { db: mongo_user.db },
+    };
   }
 
   public async init(): Promise<void> {
@@ -73,6 +78,7 @@ class Mongo implements DBConnection {
 
   public async get_db(db_name: string): Promise<Database> {
     return {
+      server: this.server,
       type: "mongo",
       name: db_name,
       users: await this.list_users(db_name),
@@ -84,7 +90,7 @@ class Mongo implements DBConnection {
       .db("admin")
       .collection("system.users")
       .find(db_name ? { "roles.db": db_name } : {})
-      .map(mongo_user_to_dbuser)
+      .map((system_user) => this.mongo_user_to_dbuser(system_user))
       .toArray();
   }
 
@@ -171,7 +177,7 @@ class Mongo implements DBConnection {
       .db("admin")
       .collection("system.users")
       .find({ user: username, db: db })
-      .map(mongo_user_to_dbuser)
+      .map((system_user) => this.mongo_user_to_dbuser(system_user))
       .toArray()
       .then((users: MongoDBUser[]) => {
         if (users.length > 1) throw `Multiple users ${db}.${username}`;
