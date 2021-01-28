@@ -63,6 +63,7 @@ RUN apt-get update \
 
 
 COPY --from=builder /usr/src/deadass/backend/dist/bundle.js ./
+COPY ./backend/config.example.json ./
 
 EXPOSE 8080
 USER 1001
