@@ -1,4 +1,4 @@
-import PasswordGenerator = require("./password_generator");
+import PasswordGenerator from "./password_generator";
 
 let generator: PasswordGenerator;
 
@@ -8,7 +8,7 @@ describe("when no length is set the generator", () => {
   });
 
   it("generates 32 character passwords", () => {
-    for (let index = 0; index < 10; index++) {
+    for (let index = 0; index < 100; index++) {
       expect(generator.genPassword().length).toBe(32);
     }
   });
@@ -20,7 +20,7 @@ describe("when the length is", () => {
       generator = new PasswordGenerator("./words.txt", 16);
     });
     it("generates 16 character passwords", () => {
-      for (let index = 0; index < 10; index++) {
+      for (let index = 0; index < 100; index++) {
         expect(generator.genPassword().length).toBe(16);
       }
     });
@@ -30,7 +30,7 @@ describe("when the length is", () => {
       generator = new PasswordGenerator("./words.txt", 33);
     });
     it("generates 33 character passwords", () => {
-      for (let index = 0; index < 10; index++) {
+      for (let index = 0; index < 100; index++) {
         expect(generator.genPassword().length).toBe(33);
       }
     });
@@ -40,7 +40,7 @@ describe("when the length is", () => {
       generator = new PasswordGenerator("./words.txt", 64);
     });
     it("generates 64 character passwords", () => {
-      for (let index = 0; index < 10; index++) {
+      for (let index = 0; index < 100; index++) {
         expect(generator.genPassword().length).toBe(64);
       }
     });

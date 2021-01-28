@@ -1,7 +1,7 @@
 import { exit } from "process";
 import { DBWrangler } from "./db_wrangler";
 import Mailer from "./mail";
-import PasswordGenerator = require("./password_generator");
+import PasswordGenerator from "./password_generator";
 import get_config, { Config } from "./config";
 import express = require("express");
 

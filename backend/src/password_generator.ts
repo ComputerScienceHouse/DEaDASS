@@ -1,5 +1,5 @@
-import crypto = require("crypto");
-import fs = require("fs");
+import { randomBytes } from "crypto";
+import { readFileSync } from "fs";
 
 const symbols: string[] = Array.from("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
 const min_digits = 4;
@@ -10,7 +10,7 @@ const num_symbols = 0;
  * @returns A random number
  */
 function getRandomNumber(): number {
-  return crypto.randomBytes(6).readUInt32BE();
+  return randomBytes(6).readUInt32BE();
 }
 
 class PasswordGenerator {
@@ -27,7 +27,7 @@ class PasswordGenerator {
     wordlist_filepath: string,
     private readonly max_length: number = 32
   ) {
-    this.wordlist = fs.readFileSync(wordlist_filepath, "utf8").split("\n");
+    this.wordlist = readFileSync(wordlist_filepath, "utf8").split("\n");
     this.caps_attempts = Math.floor(this.max_length / 4);
   }
 
@@ -112,4 +112,4 @@ class PasswordGenerator {
   }
 }
 
-export = PasswordGenerator;
+export default PasswordGenerator;
