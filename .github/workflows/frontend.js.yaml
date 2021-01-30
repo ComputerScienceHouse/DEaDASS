@@ -5,11 +5,11 @@ name: Node CI for the frontend
 
 on:
   push:
-    branches: [develop, master]
-    paths: ['frontend/**']
+    branches: [ develop, master ]
+    paths: [ 'yarn.lock', 'frontend/**', '.github/workflows/frontend.js.yaml' ]
   pull_request:
-    branches: [develop, master]
-    paths: ['frontend/**']
+    branches: [ develop, master ]
+    paths: [ 'yarn.lock', 'frontend/**', '.github/workflows/frontend.js.yaml' ]
 
 jobs:
   test:
@@ -17,8 +17,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x]
-        yarn-workspace: ['@csh/deadass-frontend']
+        node-version: [ 14.x, 15.x ]
+        yarn-workspace: [ '@csh/deadass-frontend' ]
 
     steps:
       - uses: actions/checkout@v2
