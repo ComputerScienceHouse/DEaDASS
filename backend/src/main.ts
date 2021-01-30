@@ -4,6 +4,7 @@ import Mailer from "./mail";
 import PasswordGenerator from "./password_generator";
 import get_config, { Config } from "./config";
 import express = require("express");
+import cors = require("cors");
 
 let config: Config;
 try {
@@ -23,6 +24,13 @@ const app = express();
 // Configure body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Configure cors
+const corsOptions: cors.CorsOptions = {
+  origin: config.cors_origins,
+};
+app.options("*", cors());
+app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
   if (req.accepts("json")) {
@@ -82,6 +90,7 @@ app.get("/databases/:server/:name", (req, res, next) => {
     .catch(next);
 });
 
+app.options("/databases/:server/:name");
 app.delete("/databases/:server/:name", (req, res, next) => {
   const { server, name } = req.params;
   wrangler

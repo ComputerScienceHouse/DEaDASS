@@ -13,5 +13,8 @@
       "auth": "mongodb://mongo:mysecretpassword@mongo:27017"
     }
   ],
-  "port": 8080
+  "port": 8080,
+  "cors_origins": [
+    "http://localhost:3000"
+  ]
 }

@@ -8,6 +8,7 @@ export type Config = {
   db_servers: DBServerConfigStanza[]; // database configurations
   config_path: string; // path to config file
   port: number; // Port to serve the UI on
+  cors_origins: string[]; // list of permitted cors origins
 };
 
 /**
@@ -115,6 +116,7 @@ export default function get_config(): Readonly<Config> {
     db_servers: [],
     config_path: "",
     port: 8080,
+    cors_origins: [],
   };
 
   // Read from the environment first, in case a config path is defined, then
