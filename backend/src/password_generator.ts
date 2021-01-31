@@ -60,9 +60,11 @@ class PasswordGenerator {
       if (
         word.length +
           cur_length +
-          (pass_words.length - 1) * (num_symbols + min_digits) >
+          pass_words.length * (num_symbols + min_digits) >
         this.max_length
       ) {
+        // If we don't have at all enough space left, stop getting new words
+        if (word.length < min_digits) break;
         continue;
       }
 
