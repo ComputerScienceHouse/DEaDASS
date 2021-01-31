@@ -44,17 +44,20 @@ app.use((req, res, next) => {
   }
 });
 
-app.get("/health", (_, res) => {
-  const response = {
-    database: wrangler.is_connected(),
-  };
-  // Return 200 iff all servers are connected
-  const status = response.database
-    .map((server) => server.isConnected)
-    .every((b) => b)
-    ? 200
-    : 500;
-  res.status(status).json(response);
+app.get("/health", (_, res, next) => {
+  wrangler
+    .is_connected()
+    .then((map) => {
+      const response = {
+        database: Object.fromEntries(map),
+      };
+      // Return 200 iff all servers are connected
+      const status = map.map((server) => server.isConnected).every((b) => b)
+        ? 200
+        : 500;
+      res.status(status).json(response);
+    })
+    .catch(next);
 });
 
 app.get("/databases", (_, res, next) => {

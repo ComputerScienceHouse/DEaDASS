@@ -49,8 +49,10 @@ class Mongo implements DBConnection {
     await this.client.connect();
   }
 
-  public is_connected(): boolean {
-    return this.client.isConnected();
+  public is_connected(): Promise<boolean> {
+    return new Promise<boolean>((resolve) =>
+      resolve(this.client.isConnected())
+    );
   }
 
   public list_dbs(): Promise<Database[]> {

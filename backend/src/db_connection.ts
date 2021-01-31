@@ -11,7 +11,7 @@ export interface DBConnection {
   /**
    * Check if the db is connected
    */
-  is_connected(): boolean;
+  is_connected(): Promise<boolean>;
 
   /**
    * Get a list of all the databases
@@ -123,7 +123,7 @@ export type DBRole = {
   db: string;
 };
 
-export type DatabaseType = "mongo";
+export type DatabaseType = "mongo" | "postgres";
 
 export type DBUser = {
   server: string;

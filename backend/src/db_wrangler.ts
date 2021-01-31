@@ -1,10 +1,13 @@
 import Mongo, { MongoConfigStanza } from "./dbs/mongo";
+import Postgres, { PostgresConfigStanza } from "./dbs/postgres";
 import { Database, DBConnection, DBUser } from "./db_connection";
 
 export interface DBServerConfigStanza {
   type: string;
   name: string;
 }
+
+export type ServerStatus = { isConnected: boolean };
 
 class MapWithMap<K, V> extends Map<K, V> {
   // eslint is disagreeing with prettier here, so we need the disable
@@ -27,6 +30,12 @@ export class DBWrangler {
       switch (dbstanza.type) {
         case "mongo":
           this.conns.set(dbstanza.name, new Mongo(<MongoConfigStanza>dbstanza));
+          break;
+        case "postgres":
+          this.conns.set(
+            dbstanza.name,
+            new Postgres(<PostgresConfigStanza>dbstanza)
+          );
           break;
         default:
           console.error(
@@ -58,12 +67,20 @@ export class DBWrangler {
   /**
    * Check if the db is connected
    */
-  public is_connected(): MapWithMap<string, { isConnected: boolean }> {
-    return new MapWithMap<string, { isConnected: boolean }>(
-      this.conns.map((conn, server) => [
-        server,
-        { isConnected: conn.is_connected() },
-      ])
+  public async is_connected(): Promise<MapWithMap<string, ServerStatus>> {
+    return new MapWithMap<string, ServerStatus>(
+      await Promise.all(
+        this.conns.map((conn, server) =>
+          conn.is_connected().then((val): [string, ServerStatus] => {
+            return [
+              server,
+              {
+                isConnected: val,
+              },
+            ];
+          })
+        )
+      )
     );
   }
 

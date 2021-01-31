@@ -1,4 +1,5 @@
 const ESLintPlugin = require("eslint-webpack-plugin");
+const webpack = require("webpack");
 
 module.exports = {
   target: "node",
@@ -8,6 +9,7 @@ module.exports = {
     new ESLintPlugin({
       extensions: [".ts", ".tsx"],
     }),
+    new webpack.IgnorePlugin({ resourceRegExp: /^pg-native$/ }),
   ],
   module: {
     rules: [

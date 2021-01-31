@@ -11,6 +11,16 @@
       "name": "mongo",
       "type": "mongo",
       "auth": "mongodb://mongo:mysecretpassword@mongo:27017"
+    },
+    {
+      "name": "postgres",
+      "type": "postgres",
+      "auth": {
+            "host": "postgres",
+            "user": "postgres",
+            "database": "postgres",
+            "password": "mysecretpassword"
+      }
     }
   ],
   "port": 8080,
