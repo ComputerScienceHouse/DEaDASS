@@ -4,7 +4,9 @@
 
 # The rewrite
 DEaDASS was originally started in Java with spring, but is being rewritten in
-typescript with node. This readme will be updated to reflect this change
+typescript with node. This readme will be updated to reflect this change eventually.
+
+For backend dev setup, see [backend/README.md](./backend/README.md).
 
 # DEaDASS
 Database Execution and Deletion Administrative Self Service
