@@ -65,20 +65,6 @@ class Mongo implements DBConnection {
       );
   }
 
-  /**
-   * Get a list of all the db names
-   * @returns an array of db names
-   */
-  private list_db_names(): Promise<string[]> {
-    return this.client
-      .db("admin")
-      .admin()
-      .listDatabases()
-      .then((response: { databases: Array<{ name: string }> }) =>
-        response.databases.map((db: { name: string }) => db.name)
-      );
-  }
-
   public async get_db(db_name: string): Promise<Database> {
     return {
       server: this.server,
@@ -195,11 +181,10 @@ class Mongo implements DBConnection {
     password: string
   ): Promise<{ db: Database; user: DBUser }> {
     // Check if the db is already in use
-    // TODO for mongo this includes if any users have write access to the database
     return (
-      this.list_db_names()
-        .then((names: string[]) => {
-          if (names.includes(db_name)) {
+      this.get_db(db_name)
+        .then(({ users }) => {
+          if (users.length > 0) {
             throw `db ${db_name} already exists`;
           }
         })
