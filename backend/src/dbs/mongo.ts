@@ -56,6 +56,7 @@ class Mongo implements DBConnection {
   }
 
   public list_dbs(): Promise<Database[]> {
+    // TODO this doesn't handle users with access to empty databases...
     return this.client
       .db("admin")
       .admin()

@@ -1,0 +1,33 @@
+{
+  "sqltools.connections": [
+    {
+      "name": "Postgres",
+      "driver": "PostgreSQL",
+      "previewLimit": 50,
+      "server": "postgres",
+      "port": 5432,
+      "database": "postgres",
+      "username": "postgres",
+      "password": "mysecretpassword"
+    },
+    {
+      "name": "MySQL",
+      "driver": "MySQL",
+      "server": "mysql",
+      "port": 3306,
+      "database": "mysql",
+      "username": "mysql",
+      "password": "mysecretpassword"
+    },
+    {
+      "previewLimit": 50,
+      "server": "postgres",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "foo",
+      "database": "foo",
+      "username": "foo",
+      "password": "mysecretpassword"
+    }
+  ]
+}
