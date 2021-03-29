@@ -3,22 +3,21 @@ import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDatabase } from '@fortawesome/free-solid-svg-icons'
-import { Card, CardBody, CardHeader, CardText, CardTitle } from 'reactstrap'
+import { Card, CardBody, CardHeader, CardTitle } from 'reactstrap'
 
 class DBCard extends React.Component {
   render () {
-    const { name, type, purpose } = this.props
+    const { server, type, name } = this.props
 
     return (
       <Card>
         <CardHeader>
-          <FontAwesomeIcon icon={faDatabase} /> {type}
+          <FontAwesomeIcon icon={faDatabase} /> {`${server}:${type}`}
         </CardHeader>
         <CardBody>
-          <Link to={`/db/${type}/${name}`}>
+          <Link to={`/db/${server}/${name}`}>
             <CardTitle>{name}</CardTitle>
           </Link>
-          <CardText>{purpose}</CardText>
         </CardBody>
       </Card>
     )
@@ -26,9 +25,10 @@ class DBCard extends React.Component {
 }
 
 DBCard.propTypes = {
-  name: PropTypes.string,
+  server: PropTypes.string,
   type: PropTypes.string,
-  purpose: PropTypes.string
+  name: PropTypes.string,
+  users: PropTypes.array
 }
 
 export default DBCard
