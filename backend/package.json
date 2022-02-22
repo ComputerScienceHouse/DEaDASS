@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "concurrently 'yarn:start:watch' 'yarn:build:watch'",
     "start": "node dist/bundle.js",
-    "start:watch": "nodemon -w dist/bundle.js -w config*.json dist/bundle.js",
+    "start:watch": "nodemon -w dist/bundle.js -w config.json -w config.example.json dist/bundle.js",
     "build": "webpack",
     "build:watch": "webpack --watch",
     "build:production": "webpack --mode=production",
