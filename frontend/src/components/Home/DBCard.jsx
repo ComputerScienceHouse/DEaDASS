@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDatabase } from '@fortawesome/free-solid-svg-icons'
 import { Card, CardBody, CardHeader, CardTitle } from 'reactstrap'
+import DBIcon from '../DBIcon'
 
 class DBCard extends React.Component {
   render () {
@@ -12,7 +13,7 @@ class DBCard extends React.Component {
     return (
       <Card>
         <CardHeader>
-          <FontAwesomeIcon icon={faDatabase} /> {`${server}:${type}`}
+          <FontAwesomeIcon icon={faDatabase} /> <DBIcon type={type}/> {`${server}:${type}`}
         </CardHeader>
         <CardBody>
           <Link to={`/db/${server}/${name}`}>

@@ -2,8 +2,10 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Card, CardBody, CardDeck, CardHeader, Table } from 'reactstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faDatabase, faLeaf, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faDatabase, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link } from 'react-router-dom'
+
+import DBIcon from '../DBIcon'
 
 class DBInfo extends Component {
   render () {
@@ -35,19 +37,6 @@ DBInfo.propTypes = {
 }
 
 export default DBInfo
-
-function DBIcon (props) {
-  switch (props.type) {
-    case 'mongo':
-      return (<FontAwesomeIcon icon={faLeaf}/>)
-    default:
-      return null
-  }
-}
-
-DBIcon.propTypes = {
-  type: PropTypes.string
-}
 
 function DatabaseCard (props) {
   const {server, type, name} = props.database
