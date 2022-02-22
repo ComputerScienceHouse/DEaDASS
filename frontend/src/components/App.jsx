@@ -23,7 +23,7 @@ class App extends Component {
               <Route exact path="/callback" component={OidcCallback}/>
               <ProtectedRoute exact path="/" component={Home}/>
               <ProtectedRoute exact path="/create" component={Create}/>
-              <ProtectedRoute path="/db/:type/:name" component={DBInfo}/>
+              <ProtectedRoute path="/db/:server/:name" component={DBInfo}/>
             </Switch>
           </Container>
         </Container>
