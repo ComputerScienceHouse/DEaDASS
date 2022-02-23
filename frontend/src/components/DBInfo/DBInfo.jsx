@@ -33,7 +33,12 @@ class DBInfo extends Component {
 }
 
 DBInfo.propTypes = {
-  match: PropTypes.shape({params: PropTypes.shape({server: PropTypes.string, name: PropTypes.string})})
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      server: PropTypes.string,
+      name: PropTypes.string
+    })
+  })
 }
 
 export default DBInfo
@@ -114,7 +119,11 @@ DBUserCard.propTypes = {
     user: PropTypes.string,
     server: PropTypes.string,
     type: PropTypes.string,
-    roles: PropTypes.arrayOf(PropTypes.shape({role: PropTypes.string, db: PropTypes.string
-    }))
+    roles: PropTypes.arrayOf(
+      PropTypes.shape({
+        role: PropTypes.string,
+        db: PropTypes.string
+      })
+    )
   })
 }
