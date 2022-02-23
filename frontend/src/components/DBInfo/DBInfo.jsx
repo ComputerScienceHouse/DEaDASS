@@ -4,31 +4,46 @@ import { Card, CardBody, CardDeck, CardHeader, Table } from 'reactstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDatabase, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link } from 'react-router-dom'
+import { connect } from 'react-redux'
 
+import { GET } from '../../actions/get'
 import DBIcon from '../DBIcon'
+import InfoSpinner from '../InfoSpinner'
 
 class DBInfo extends Component {
-  render () {
-    // todo: fetch database from backend, create a DBUserCard for each user
-    // todo: create /db/$server page
-    return (
-      <div>
-        <DatabaseCard database={{
-          server: this.props.match.params.server, type: 'mongo', name: this.props.match.params.name}} />
+  constructor (props) {
+    super(props)
 
-        <CardDeck>
-          <DBUserCard
-            dbUser={{
-              server: 'local',
-              type: 'mongo',
-              user: 'deadass',
-              roles: [{ role: 'root', db: 'admin' }],
-              extra_data: { db: 'admin' }
-            }}
-          />
-        </CardDeck>
-      </div>
-    )
+    this.state = {
+      database: null
+    }
+  }
+
+  componentDidMount () {
+    // Fetch the database from the api on mount
+    GET(this.props.oidc.user.access_token, `/databases/${this.props.match.params.server}/${this.props.match.params.name}`)
+      .then(response => response.json())
+      .then(json => { this.setState({database: json}) })
+  }
+
+  render () {
+    if (!this.state.database) {
+      return (<InfoSpinner>Still Loading</InfoSpinner>)
+    } else {
+      return (
+        <div>
+          <DatabaseCard database={this.state.database} />
+
+          <CardDeck>
+            {this.state.database.users.map((user, idx) => {
+              return (<DBUserCard key={idx} dbUser={user}/>)
+            })}
+          </CardDeck>
+        </div>
+      )
+    }
+
+    // TODO: create /db/$server page
   }
 }
 
@@ -38,10 +53,19 @@ DBInfo.propTypes = {
       server: PropTypes.string,
       name: PropTypes.string
     })
-  })
+  }),
+  database: PropTypes.object, // TODO typing
+  oidc: PropTypes.any // TODO typing
 }
 
-export default DBInfo
+const mapStateToProps = (state) => {
+  return {
+    oidc: state.oidc,
+    databases: state.apis.databases
+  }
+}
+
+export default connect(mapStateToProps)(DBInfo)
 
 function DatabaseCard (props) {
   const {server, type, name} = props.database
