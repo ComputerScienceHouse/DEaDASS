@@ -11,6 +11,7 @@ import {
   Home,
   NavBar
 } from './index'
+import ServerInfo from './ServerInfo'
 
 class App extends Component {
   render () {
@@ -24,6 +25,7 @@ class App extends Component {
               <ProtectedRoute exact path="/" component={Home}/>
               <ProtectedRoute exact path="/create" component={Create}/>
               <ProtectedRoute path="/db/:server/:name" component={DBInfo}/>
+              <ProtectedRoute path="/db/:server" component={ServerInfo} />
             </Switch>
           </Container>
         </Container>

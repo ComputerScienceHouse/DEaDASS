@@ -37,6 +37,41 @@ export class DBWrangler {
   }
 
   /**
+   * Get this wrangler's servers
+   * @returns A list of the servers known to this wrangler
+   */
+  public get_servers(): Array<{
+    server: string;
+    type: string;
+    is_connected: boolean;
+  }> {
+    return this.conns.map((conn) => {
+      return {
+        server: conn.server,
+        type: conn.type,
+        is_connected: conn.is_connected(),
+      };
+    });
+  }
+
+  public get_server(
+    server: string
+  ): {
+    server: string;
+    type: string;
+    is_connected: boolean;
+  } {
+    const desc = this.conns.get(server);
+    if (desc)
+      return {
+        server: desc.server,
+        type: desc.type,
+        is_connected: desc.is_connected(),
+      };
+    throw `Unknown server '${server}'`;
+  }
+
+  /**
    * Given a server name, return the connection for that server
    * @param server the server to select
    * @returns the requested DBConnection

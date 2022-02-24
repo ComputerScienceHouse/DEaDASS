@@ -57,6 +57,18 @@ app.get("/health", (_, res) => {
   res.status(status).json(response);
 });
 
+app.get("/servers", (_, res) => {
+  res.json(wrangler.get_servers());
+});
+
+app.get("/servers/:server", (req, res, next) => {
+  try {
+    res.json(wrangler.get_server(req.params.server));
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/databases", (_, res, next) => {
   wrangler
     .list_dbs()
