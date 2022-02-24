@@ -1,7 +1,7 @@
 import React from 'react'
 import { Collapse, Container, Nav, Navbar, NavbarToggler, NavItem } from 'reactstrap'
 import { NavLink } from 'react-router-dom'
-import UserProfile from '../../containers/UserProfile'
+import ProfileDropdown from './ProfileDropdown'
 
 class NavBar extends React.Component {
   constructor (props) {
@@ -37,7 +37,7 @@ class NavBar extends React.Component {
                 </NavItem>
               </Nav>
               <Nav navbar className="ml-auto">
-                <UserProfile/>
+                <ProfileDropdown/>
               </Nav>
             </Collapse>
           </Container>

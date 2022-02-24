@@ -1,8 +1,10 @@
 import React from 'react'
+import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import { DropdownItem, DropdownMenu, DropdownToggle, UncontrolledDropdown } from 'reactstrap'
+import User from '../UserImage'
 
-class Profile extends React.Component {
+class ProfileDropdown extends React.Component {
   constructor (props) {
     super(props)
 
@@ -21,32 +23,18 @@ class Profile extends React.Component {
   render () {
     if (!this.props.name || !this.props.username) return null
 
-    const { name, username } = this.props
-
     return (
       <UncontrolledDropdown nav inNavbar>
         <DropdownToggle nav caret className="navbar-user">
-          <img
-            className="rounded-circle"
-            src={`https://profiles.csh.rit.edu/image/${username}`}
-            alt=""
-            aria-hidden={true}
-            width={32}
-            height={32}
-          />
-          {name} ({username})
+          <User {...this.props}/>
           <span className="caret"/>
         </DropdownToggle>
         <DropdownMenu>
-          <DropdownItem>
-                        Dashboard
+          <DropdownItem tag="a" href="https://profiles.csh.rit.edu">
+            Profile
           </DropdownItem>
-          <DropdownItem>
-                        Settings
-          </DropdownItem>
-          <DropdownItem divider/>
-          <DropdownItem>
-                        Logout
+          <DropdownItem tag="a" href="https://themeswitcher.csh.rit.edu">
+            Theme
           </DropdownItem>
         </DropdownMenu>
       </UncontrolledDropdown>
@@ -54,9 +42,21 @@ class Profile extends React.Component {
   }
 }
 
-Profile.propTypes = {
+ProfileDropdown.propTypes = {
   name: PropTypes.string,
   username: PropTypes.string
 }
 
-export default Profile
+const mapStateToProps = state => ({
+  name: ((state.oidc.user || {}).profile || {}).given_name,
+  username: ((state.oidc.user || {}).profile || {}).preferred_username
+})
+
+const mapDispatchToProps = dispatch => ({
+  dispatch
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ProfileDropdown)
