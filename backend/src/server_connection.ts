@@ -1,20 +1,20 @@
-export interface DBConnection {
+export interface ServerConnection {
   readonly server: string;
   readonly type: DatabaseType;
 
   /**
-   * Initialise the database conection
-   * @returns A promise. When resolved, the database connection will be valid
+   * Initialise the server connection
+   * @returns A promise. When resolved, the server connection will be valid
    */
   init(): Promise<void>;
 
   /**
-   * Check if the db is connected
+   * Check if the server is connected
    */
   is_connected(): boolean;
 
   /**
-   * Get a list of all the databases
+   * Get a list of all the databases on this server
    * @returns A promise resolving to a list of all dbs
    */
   list_dbs(): Promise<Database[]>;
@@ -25,7 +25,7 @@ export interface DBConnection {
   get_db(db_name: string): Promise<Database>;
 
   /**
-   * Get a list of all users
+   * Get a list of all users on this server
    * @param db_name (optional) get only the with access to the given database
    * @returns the list of users
    */

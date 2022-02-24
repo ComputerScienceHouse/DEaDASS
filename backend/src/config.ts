@@ -5,7 +5,7 @@ import { MailConfigStanza } from "./mail";
 export type Config = {
   node_env: string;
   mail: MailConfigStanza;
-  db_servers: DBServerConfigStanza[]; // database configurations
+  db_servers: DBServerConfigStanza[]; // server configurations
   config_path: string; // path to config file
   port: number; // Port to serve the UI on
   cors_origins: string[]; // list of permitted cors origins

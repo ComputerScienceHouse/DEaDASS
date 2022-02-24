@@ -1,4 +1,9 @@
-import type { Database, DBConnection, DBRole, DBUser } from "../db_connection";
+import type {
+  Database,
+  ServerConnection,
+  DBRole,
+  DBUser,
+} from "../server_connection";
 import { MongoClient } from "mongodb";
 import { DBServerConfigStanza } from "../db_wrangler";
 
@@ -22,7 +27,7 @@ export interface MongoConfigStanza extends DBServerConfigStanza {
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function void_promise(): void {}
 
-class Mongo implements DBConnection {
+class Mongo implements ServerConnection {
   public readonly server: string;
   public readonly type: "mongo" = "mongo";
   private readonly client: MongoClient;

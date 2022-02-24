@@ -1,5 +1,5 @@
 import Mongo, { MongoConfigStanza } from "./dbs/mongo";
-import { Database, DBConnection, DBUser } from "./db_connection";
+import { Database, ServerConnection, DBUser } from "./server_connection";
 
 export interface DBServerConfigStanza {
   type: string;
@@ -17,9 +17,9 @@ class MapWithMap<K, V> extends Map<K, V> {
 }
 
 export class DBWrangler {
-  private readonly conns: MapWithMap<string, DBConnection> = new MapWithMap<
+  private readonly conns: MapWithMap<string, ServerConnection> = new MapWithMap<
     string,
-    DBConnection
+    ServerConnection
   >();
 
   public constructor(config_stanza: DBServerConfigStanza[]) {
@@ -37,18 +37,18 @@ export class DBWrangler {
   }
 
   /**
-   * Given a database name, return the connection for that db
-   * @param server the database to select
+   * Given a server name, return the connection for that server
+   * @param server the server to select
    * @returns the requested DBConnection
    */
-  private pick_db(server: string): DBConnection {
+  private pick_server(server: string): ServerConnection {
     const retval = this.conns.get(server);
     if (retval) return retval;
-    throw `Unknown database '${server}'`;
+    throw `Unknown server '${server}'`;
   }
 
   /**
-   * Initialise the database conection
+   * Initialise the server conections
    * @return A promise. When resolved, all the server connections will be valid
    */
   public async init(): Promise<void> {
@@ -56,7 +56,7 @@ export class DBWrangler {
   }
 
   /**
-   * Check if the db is connected
+   * Check which servers are connected
    */
   public is_connected(): MapWithMap<string, { isConnected: boolean }> {
     return new MapWithMap<string, { isConnected: boolean }>(
@@ -72,13 +72,14 @@ export class DBWrangler {
    */
   // public list_dbs(): Promise<Array<{ type: DatabaseType; dbs: string[] }>>;
   public list_dbs(): Promise<Database[]>;
+
   /**
    * Get a list of databases
    * @param server get only databases from the specified server
    */
   public list_dbs(server: string): Promise<Database[]>;
   public list_dbs(server?: string): Promise<Database[]> {
-    if (server) return this.pick_db(server).list_dbs();
+    if (server) return this.pick_server(server).list_dbs();
     return Promise.all(this.conns.map((conn) => conn.list_dbs())).then((dbs) =>
       dbs.flat()
     );
@@ -90,7 +91,7 @@ export class DBWrangler {
    * @param db_name the specific db
    */
   public get_db(server: string, db_name: string): Promise<Database> {
-    return this.pick_db(server).get_db(db_name);
+    return this.pick_server(server).get_db(db_name);
   }
 
   /**
@@ -112,7 +113,7 @@ export class DBWrangler {
   public list_users(server: string, db_name: string): Promise<DBUser[]>;
   public list_users(server?: string, db_name?: string): Promise<DBUser[]> {
     if (server) {
-      return this.pick_db(server).list_users(db_name);
+      return this.pick_server(server).list_users(db_name);
     }
     return Promise.all(
       this.conns.map((conn) => conn.list_users())
@@ -133,7 +134,11 @@ export class DBWrangler {
     password: string,
     roles: Array<{ db: string; role: string }>
   ): Promise<DBUser> {
-    return this.pick_db(server).create_user_account(username, password, roles);
+    return this.pick_server(server).create_user_account(
+      username,
+      password,
+      roles
+    );
   }
 
   /**
@@ -152,7 +157,7 @@ export class DBWrangler {
     roles: Array<{ db: string; role: string }>,
     db: string
   ): Promise<DBUser> {
-    return this.pick_db(server).create_service_account(
+    return this.pick_server(server).create_service_account(
       username,
       password,
       roles,
@@ -174,7 +179,7 @@ export class DBWrangler {
     username: string,
     password: string
   ): Promise<{ db: Database; user: DBUser }> {
-    return this.pick_db(server).create_db(db_name, username, password);
+    return this.pick_server(server).create_db(db_name, username, password);
   }
 
   /**
@@ -188,7 +193,7 @@ export class DBWrangler {
     username: string,
     db: string
   ): Promise<void> {
-    return this.pick_db(server).delete_user(username, db);
+    return this.pick_server(server).delete_user(username, db);
   }
 
   /**
@@ -197,7 +202,7 @@ export class DBWrangler {
    * @param db_name  The database to be deleted
    */
   public delete_db(server: string, db_name: string): Promise<void> {
-    return this.pick_db(server).delete_db(db_name);
+    return this.pick_server(server).delete_db(db_name);
   }
 
   /**
@@ -215,7 +220,7 @@ export class DBWrangler {
     password?: string,
     roles?: Array<{ db: string; role: string }>
   ): Promise<DBUser> {
-    return this.pick_db(server).update_user(username, db, password, roles);
+    return this.pick_server(server).update_user(username, db, password, roles);
   }
 
   /**
@@ -231,7 +236,7 @@ export class DBWrangler {
     username: string,
     password: string
   ): Promise<DBUser> {
-    return this.pick_db(server).set_password(username, db, password);
+    return this.pick_server(server).set_password(username, db, password);
   }
 
   /**
