@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 
 import { GET } from '../../actions/get'
-import DBIcon from '../DBIcon'
+import ServerIcon from '../ServerIcon'
 import InfoSpinner from '../InfoSpinner'
 
 class DBInfo extends Component {
@@ -72,7 +72,7 @@ function DatabaseCard (props) {
   return (
     <Card>
       <CardHeader>
-        <FontAwesomeIcon icon={faDatabase}/> <DBIcon type={type}/> <b>{name}</b> on <Link to={`/db/${server}`}>{server}</Link>
+        <FontAwesomeIcon icon={faDatabase}/> <ServerIcon type={type}/> <b>{name}</b> on <Link to={`/db/${server}`}>{server}</Link>
       </CardHeader>
     </Card>
   )
