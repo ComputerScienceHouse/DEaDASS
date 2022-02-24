@@ -21,7 +21,7 @@ class DBInfo extends Component {
 
   componentDidMount () {
     // Fetch the database from the api on mount
-    GET(this.props.oidc.user.access_token, `/databases/${this.props.match.params.server}/${this.props.match.params.name}`)
+    GET(this.props.oidc.user.access_token, `/servers/${this.props.match.params.server}/databases/${this.props.match.params.name}`)
       .then(response => response.json())
       .then(json => { this.setState({database: json}) })
   }

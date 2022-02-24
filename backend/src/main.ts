@@ -74,7 +74,7 @@ app.post("/databases", (req, res, next) => {
     .catch(next);
 });
 
-app.get("/databases/:server", (req, res, next) => {
+app.get("/servers/:server/databases", (req, res, next) => {
   const { server } = req.params;
   wrangler
     .list_dbs(server)
@@ -82,7 +82,7 @@ app.get("/databases/:server", (req, res, next) => {
     .catch(next);
 });
 
-app.get("/databases/:server/:name", (req, res, next) => {
+app.get("/servers/:server/databases/:name", (req, res, next) => {
   const { server, name } = req.params;
   wrangler
     .get_db(server, name)
@@ -90,8 +90,8 @@ app.get("/databases/:server/:name", (req, res, next) => {
     .catch(next);
 });
 
-app.options("/databases/:server/:name");
-app.delete("/databases/:server/:name", (req, res, next) => {
+app.options("/servers/:server/databases/:name");
+app.delete("/servers/:server/databases/:name", (req, res, next) => {
   const { server, name } = req.params;
   wrangler
     .delete_db(server, name)
