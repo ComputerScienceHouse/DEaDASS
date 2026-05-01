@@ -1,5 +1,27 @@
 from functools import wraps
 from flask import session
+from markupsafe import Markup
+
+
+def credential_html(value):
+    """Render a credential as an inline ``<code>`` block followed by a copy button.
+
+    Returns a :class:`markupsafe.Markup` so it can be embedded in ``flash()``
+    messages via ``Markup.format()`` without losing escaping on the surrounding
+    template text. The value is HTML-escaped (by ``Markup.format``) before being
+    placed both in the visible code block and in the button's
+    ``data-deadass-copy`` attribute.
+    """
+    return Markup(
+        '<code class="deadass-credential">{value}</code>'
+        ' <button type="button"'
+        ' class="btn btn-sm btn-outline-secondary deadass-copy"'
+        ' data-deadass-copy="{value}"'
+        ' aria-label="Copy to clipboard">'
+        '<i class="fas fa-copy" aria-hidden="true"></i>'
+        ' <span class="deadass-copy-label">Copy</span>'
+        '</button>'
+    ).format(value=str(value))
 
 
 def csh_user_auth(func):

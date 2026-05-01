@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from markupsafe import Markup
 from deadass import deadass_db, postgres_db, mysql_db, mongo_db, auth, commit
-from deadass.utils import get_user
+from deadass.utils import get_user, credential_html
 from deadass.models import Database
 from sqlalchemy.orm import Session
 import random
@@ -77,7 +78,9 @@ def create_db(user_dict=None):
             session.add(new_db)
             session.commit()
         flash(
-            f'Your Database has been created with username "{name}" and password "{password}"!'
+            Markup(
+                'Your Database has been created with username {name} and password {password}!'
+            ).format(name=credential_html(name), password=credential_html(password))
         )
         return redirect("/")
     return render_template(
@@ -114,7 +117,11 @@ def reset_password(db_id, user_dict=None):
     elif db.db_type == "MONGO":
         db = mongo_db.cx[name]
         db.command("changeUserPassword", name, pwd=password)
-    flash(f'Password has been changed to "{password}"!')
+    flash(
+        Markup('Password has been changed to {password}!').format(
+            password=credential_html(password)
+        )
+    )
     return redirect("/")
 
 

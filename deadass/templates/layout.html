@@ -28,6 +28,27 @@
         integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
   <link rel="manifest" href="/static/manifest.json">
   <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->
+  <style>
+    .deadass-credential {
+      display: inline-block;
+      padding: 0.18em 0.5em;
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 4px;
+      color: inherit;
+      font-size: 0.95em;
+      word-break: break-all;
+      user-select: all;
+    }
+    .deadass-copy {
+      margin-left: 0.35em;
+      vertical-align: baseline;
+    }
+    .deadass-copy.is-copied {
+      color: #fff;
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+  </style>
   {% endblock %}
 </head>
 
@@ -82,6 +103,55 @@
       ({{commit}})</a></p>
   </div>
 </footer>
+<script>
+  (function () {
+    function flashCopied(btn) {
+      var label = btn.querySelector('.deadass-copy-label');
+      var original = label ? label.textContent : null;
+      btn.classList.add('is-copied');
+      if (label) { label.textContent = 'Copied'; }
+      setTimeout(function () {
+        btn.classList.remove('is-copied');
+        if (label && original !== null) { label.textContent = original; }
+      }, 1500);
+    }
+
+    function fallbackCopy(text, btn) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '0';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      if (ok) {
+        flashCopied(btn);
+      } else {
+        window.prompt('Copy this credential:', text);
+      }
+    }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.deadass-copy');
+      if (!btn) { return; }
+      e.preventDefault();
+      var text = btn.getAttribute('data-deadass-copy');
+      if (text === null) { return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          function () { flashCopied(btn); },
+          function () { fallbackCopy(text, btn); }
+        );
+      } else {
+        fallbackCopy(text, btn);
+      }
+    });
+  })();
+</script>
 </body>
 
 </html>

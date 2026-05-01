@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from markupsafe import Markup
 from deadass import deadass_db, rgwadmin, auth, commit
-from deadass.utils import get_user
+from deadass.utils import get_user, credential_html
 from deadass.models import S3
 from sqlalchemy.orm import Session
 import random
@@ -29,7 +30,13 @@ def create_bucket(user_dict=None):
             session.add(new_bucket)
             session.commit()
         flash(
-            f'Your S3 User has been created with UID "{name}", Access Key "{access_key}", and Secret Key "{secret_key}"!'
+            Markup(
+                'Your S3 User has been created with UID {name}, Access Key {access_key}, and Secret Key {secret_key}!'
+            ).format(
+                name=credential_html(name),
+                access_key=credential_html(access_key),
+                secret_key=credential_html(secret_key),
+            )
         )
         return redirect("/")
     return render_template(
@@ -50,7 +57,11 @@ def reset_password(s3_id, user_dict=None):
         abort(400)
     keys = rgwadmin.create_key(s3.name, access_key=s3.access_key, generate_key=True)
     secret_key = keys[0]['secret_key']
-    flash(f'Secret Key has been changed to "{secret_key}"!')
+    flash(
+        Markup('Secret Key has been changed to {secret_key}!').format(
+            secret_key=credential_html(secret_key)
+        )
+    )
     return redirect("/")
 
 
