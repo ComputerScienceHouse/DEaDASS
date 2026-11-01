@@ -1,0 +1,81 @@
+services:
+  deadass:
+    container_name: deadass
+    build: .
+    depends_on:
+      - deadass-postgres
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - path: .env
+        required: false
+
+  deadass-postgres:
+    image: docker.io/postgres:18
+    container_name: deadass-postgres
+    environment:
+      POSTGRES_PASSWORD: fancypantspassword
+      POSTGRES_USER: deadass
+      POSTGRES_DATABASE: deadass
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  postgres-server:
+    image: postgres:18
+    container_name: postgres-server
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgserverdata:/var/lib/postgresql
+
+  mysql-server:
+    image: mysql:9.7
+    container_name: mysql-server
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: RootSuperSecurePassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mongo-server:
+    image: mongo:8.0
+    container_name: mongo-server
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: SuperSecureAdminPassword
+    volumes:
+      - mongo_data:/data/db
+
+  s3-server:
+    image: quay.io/benjamin_holmes/ceph-aio:v19
+    container_name: s3-server
+    environment:
+      ENABLE_DASHBOARD: "false"
+      ENABLE_CEPHFS: "false"
+      ENABLE_RBD: "false"
+      OSD_SIZE: 5G
+    ports:
+      - "8000:8000"
+    volumes:
+      - ceph_data:/var/lib/ceph
+      - ceph_conf:/etc/ceph
+
+volumes:
+  pgdata:
+  pgserverdata:
+  mysql_data:
+  mongo_data:
+  ceph_data:
+  ceph_conf:
+
