@@ -9,7 +9,5 @@ RUN pip install -r requirements.txt
 COPY ./ /app/
 COPY ./.git /app/
 
-RUN python -m flask db upgrade; exit 0
-
 CMD [ "gunicorn", "deadass:app", "--bind=0.0.0.0:8080"]
 
