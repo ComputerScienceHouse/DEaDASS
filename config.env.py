@@ -22,5 +22,7 @@ OIDC_CLIENT_ID = env.get("OIDC_CLIENT_ID", "deadass")
 OIDC_CLIENT_SECRET = env.get("OIDC_CLIENT_SECRET", "NOT-A-SECRET")
 
 S3_HOST = env.get("S3_HOST", "s3.csh.rit.edu")
+S3_PORT = env.get("S3_PORT", 443)
+S3_DISABLE_SSL = env.get("S3_DISABLE_SSL", "false").lower() == "true"
 S3_ACCESS_KEY = env.get("S3_ACCESS_KEY", "NOT-A-SECRET")
 S3_SECRET_KEY = env.get("S3_SECRET_KEY", "NOT-A-SECRET")

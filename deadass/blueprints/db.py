@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, flash
 from deadass import deadass_db, postgres_db, mysql_db, mongo_db, auth, commit
 from deadass.utils import get_user
 from deadass.models import Database
@@ -63,9 +63,9 @@ def create_db(user_dict=None):
                     connection.execute(f"CREATE DATABASE {name};")
                     connection.execute(perm_text, name=name)
         elif db_type == "MONGO":
-            if name in mongo_db.cx.list_database_names():
+            if name in mongo_db.list_database_names():
                 abort(400)
-            db = mongo_db.cx[name]
+            db = mongo_db[name]
             db.command(
                 "createUser",
                 name,
@@ -113,7 +113,7 @@ def reset_password(db_id, user_dict=None):
                 alter_text = text("ALTER USER :name@'%' IDENTIFIED BY :password;")
                 connection.execute(alter_text, name=name, password=password)
     elif db.db_type == "MONGO":
-        db = mongo_db.cx[name]
+        db = mongo_db[name]
         db.command("changeUserPassword", name, pwd=password)
     flash(f'Password has been changed to "{password}"!')
     return redirect("/")
@@ -145,7 +145,7 @@ def delete(db_id, user_dict=None):
                 connection.execute(f"DROP DATABASE {name};")
                 connection.execute(f"DROP USER {name};")
     elif database.db_type == "MONGO":
-        db = mongo_db.cx[name]
+        db = mongo_db[name]
         db.command("dropUser", name)
         db.command("dropDatabase")
     with Session(deadass_db) as session:
